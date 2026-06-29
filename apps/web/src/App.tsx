@@ -50,6 +50,20 @@ type Glass = "light" | "frosted" | "crystal";
 type LayoutMode = "sidebar" | "top" | "mixed" | "compact";
 type NavStyle = "glass" | "plain";
 type Transition = "fade" | "slide" | "scale";
+type ModuleKey =
+  | "dashboard"
+  | "schedule"
+  | "classes"
+  | "homework"
+  | "review"
+  | "forum"
+  | "records"
+  | "reminders"
+  | "billing"
+  | "monthly"
+  | "permission"
+  | "fields";
+type ModuleCopy = { title: string; description: string; primary?: string };
 
 type Preferences = {
   accent: Accent;
@@ -72,7 +86,7 @@ type ModuleItem = {
   badge?: string;
   group: "工作台" | "教学" | "运营" | "系统";
   icon: LucideIcon;
-  key: string;
+  key: ModuleKey;
   roles: Role[];
   title: string;
 };
@@ -264,6 +278,288 @@ const layoutOptions: Array<{ key: LayoutMode; label: string; tip: string }> = [
   { key: "compact", label: "紧凑导航", tip: "适合小屏和高频录入。" },
 ];
 
+const glassOptions: Array<{ key: Glass; label: string; tip: string }> = [
+  { key: "light", label: "轻透", tip: "更清爽，面板更实" },
+  { key: "frosted", label: "磨砂", tip: "雾面玻璃，层次柔和" },
+  { key: "crystal", label: "水晶", tip: "高透明，高光更强" },
+];
+
+const transitionOptions: Array<{ key: Transition; label: string; tip: string }> = [
+  { key: "fade", label: "淡入", tip: "安静柔和" },
+  { key: "slide", label: "滑入", tip: "更有方向感" },
+  { key: "scale", label: "缩放", tip: "更有空间感" },
+];
+
+const uiText = {
+  zh: {
+    groups: {
+      工作台: "工作台",
+      教学: "教学",
+      运营: "运营",
+      系统: "系统",
+    },
+    moduleContext: {
+      工作台: "工作台",
+      教学: "教学工作区",
+      运营: "运营工作区",
+      系统: "系统设置",
+    },
+    modules: {
+      dashboard: {
+        title: "工作台",
+        description: "今天必须处理的课程、作业、提醒和账单。",
+      },
+      schedule: {
+        title: "日历排课",
+        description: "手动按日期排课，优先发现学生、老师和时间段冲突。",
+        primary: "新建课程",
+      },
+      classes: {
+        title: "班级学员",
+        description: "把一对一和小班都放进班级/小组模型，后端可直接接 class_group。",
+        primary: "新增学员",
+      },
+      homework: {
+        title: "作业中心",
+        description: "覆盖发布、可见范围、截止提醒和提交状态，先用 mock 数据跑通教师视角。",
+        primary: "发布作业",
+      },
+      review: {
+        title: "批改反馈",
+        description: "第一版先支持文字点评、得分和错因标签，AI 批改以后再接入。",
+        primary: "开始批改",
+      },
+      forum: {
+        title: "题库论坛",
+        description: "老师和学生都能沉淀好题，按学科、年级、知识点和范围管理。",
+        primary: "上传题目",
+      },
+      records: {
+        title: "上课记录",
+        description: "记录课堂评价、作业情况和下次计划；第一版不要求家长确认记录。",
+        primary: "写上课记录",
+      },
+      reminders: {
+        title: "提醒中心",
+        description: "先覆盖上课和作业提醒；账单提醒按产品决策暂不做。",
+        primary: "新建提醒",
+      },
+      billing: {
+        title: "收费记录",
+        description: "按学生/班级统计课时和收款，支付只做记录，不接在线交易。",
+        primary: "记录收款",
+      },
+      monthly: {
+        title: "月结 PDF",
+        description: "按学生/班级统计课时和收款，生成可发送给家长的月度记录。",
+        primary: "生成 PDF",
+      },
+      permission: {
+        title: "权限套餐",
+        description: "保留专业版和工作室版差异，角色可见性由登录态和权限决定。",
+        primary: "配置套餐",
+      },
+      fields: {
+        title: "自定义字段",
+        description: "给学生档案、课程记录和作业批改预留 SaaS 级扩展能力。",
+        primary: "新增字段",
+      },
+    },
+    topbar: {
+      overline: "登录态工作台",
+      search: "搜索课程、学生、作业、题库",
+      theme: "主题",
+      logout: "退出登录",
+    },
+    toolbar: {
+      filter: "筛选",
+      export: "导出",
+    },
+    drawer: {
+      title: "主题配置",
+      mode: "主题模式",
+      brand: "品牌色",
+      layout: "布局模式",
+      detail: "布局细节",
+      visual: "视觉质感",
+      effects: "辅助效果",
+    },
+    auth: {
+      placement: "登录框位置",
+      left: "登录框靠左",
+      center: "登录框居中",
+      right: "登录框靠右",
+      sloganBadge: "ZenoX 产品级登录体验",
+      sloganTitle: "登录后进入属于当前角色的教学工作台。",
+      sloganDesc: "从登录态开始决定权限、导航和首页内容。老师看到排课和批改，家长看到课时和账单，学生看到作业与反馈。",
+      title: "欢迎回到 ZenoX",
+      subtitle: "选择一个演示身份，密码固定为 123456。",
+      account: "账号",
+      accountPlaceholder: "请输入账号",
+      password: "密码",
+      passwordPlaceholder: "请输入密码",
+      captchaDone: "安全验证已完成",
+      captchaHint: "按住滑块，拖到最右侧",
+      remember: "记住账号",
+      forgot: "忘记密码",
+      submit: "登录工作台",
+      mobile: "手机验证码",
+      wechat: "微信扫码",
+      invalid: "账号或密码不正确。演示密码为 123456。",
+      captchaRequired: "请先完成安全验证。",
+    },
+  },
+  en: {
+    groups: {
+      工作台: "Home",
+      教学: "Teaching",
+      运营: "Operations",
+      系统: "System",
+    },
+    moduleContext: {
+      工作台: "Workspace",
+      教学: "Teaching Workspace",
+      运营: "Operations Workspace",
+      系统: "System Settings",
+    },
+    modules: {
+      dashboard: {
+        title: "Dashboard",
+        description: "Courses, homework, reminders, and billing items that need attention today.",
+      },
+      schedule: {
+        title: "Schedule",
+        description: "Manually schedule by date and catch student, teacher, or time conflicts early.",
+        primary: "New Lesson",
+      },
+      classes: {
+        title: "Classes & Students",
+        description: "Model both one-on-one lessons and small groups as classes for a clean backend contract.",
+        primary: "Add Student",
+      },
+      homework: {
+        title: "Homework Center",
+        description: "Publish homework, manage visibility, deadlines, reminders, and submission states.",
+        primary: "Publish",
+      },
+      review: {
+        title: "Review Feedback",
+        description: "Start with text comments, scores, and mistake tags before AI-assisted grading.",
+        primary: "Start Review",
+      },
+      forum: {
+        title: "Question Forum",
+        description: "Collect high-quality questions by subject, grade, knowledge point, and visibility scope.",
+        primary: "Upload Question",
+      },
+      records: {
+        title: "Class Records",
+        description: "Capture class feedback, homework status, and the next learning plan.",
+        primary: "Write Record",
+      },
+      reminders: {
+        title: "Reminders",
+        description: "Cover lesson and homework reminders first; billing reminders are intentionally excluded.",
+        primary: "New Reminder",
+      },
+      billing: {
+        title: "Billing",
+        description: "Track lessons and payments by student or class without online payment processing.",
+        primary: "Record Payment",
+      },
+      monthly: {
+        title: "Monthly PDF",
+        description: "Generate monthly lesson records that can be shared with parents.",
+        primary: "Generate PDF",
+      },
+      permission: {
+        title: "Plans & Access",
+        description: "Keep plan differences explicit and derive visibility from login state and permissions.",
+        primary: "Configure Plan",
+      },
+      fields: {
+        title: "Custom Fields",
+        description: "Reserve SaaS-grade extension points for student profiles, records, and homework reviews.",
+        primary: "Add Field",
+      },
+    },
+    topbar: {
+      overline: "Login-based workspace",
+      search: "Search lessons, students, homework, questions",
+      theme: "Theme",
+      logout: "Log out",
+    },
+    toolbar: {
+      filter: "Filter",
+      export: "Export",
+    },
+    drawer: {
+      title: "Preferences",
+      mode: "Mode",
+      brand: "Brand Color",
+      layout: "Layout",
+      detail: "Layout Details",
+      visual: "Visual Effects",
+      effects: "Assistive Effects",
+    },
+    auth: {
+      placement: "Login panel position",
+      left: "Panel on left",
+      center: "Panel centered",
+      right: "Panel on right",
+      sloganBadge: "Product-grade ZenoX login",
+      sloganTitle: "Enter a role-aware teaching workspace after login.",
+      sloganDesc: "Permissions, navigation, and dashboard content are derived from login state. Teachers see scheduling and review, parents see billing, and students see homework feedback.",
+      title: "Welcome back to ZenoX",
+      subtitle: "Choose a demo identity. The password is 123456.",
+      account: "Account",
+      accountPlaceholder: "Enter account",
+      password: "Password",
+      passwordPlaceholder: "Enter password",
+      captchaDone: "Verification complete",
+      captchaHint: "Hold and drag the slider to the right",
+      remember: "Remember account",
+      forgot: "Forgot password",
+      submit: "Enter Workspace",
+      mobile: "Mobile code",
+      wechat: "WeChat QR",
+      invalid: "Invalid account or password. Demo password: 123456.",
+      captchaRequired: "Please complete the security verification first.",
+    },
+  },
+} satisfies Record<Preferences["language"], {
+  groups: Record<ModuleItem["group"], string>;
+  moduleContext: Record<ModuleItem["group"], string>;
+  modules: Record<ModuleKey, ModuleCopy>;
+  topbar: { overline: string; search: string; theme: string; logout: string };
+  toolbar: { filter: string; export: string };
+  drawer: { title: string; mode: string; brand: string; layout: string; detail: string; visual: string; effects: string };
+  auth: {
+    placement: string;
+    left: string;
+    center: string;
+    right: string;
+    sloganBadge: string;
+    sloganTitle: string;
+    sloganDesc: string;
+    title: string;
+    subtitle: string;
+    account: string;
+    accountPlaceholder: string;
+    password: string;
+    passwordPlaceholder: string;
+    captchaDone: string;
+    captchaHint: string;
+    remember: string;
+    forgot: string;
+    submit: string;
+    mobile: string;
+    wechat: string;
+    invalid: string;
+    captchaRequired: string;
+  };
+}>;
+
 function loadPreferences(): Preferences {
   try {
     const raw = window.localStorage.getItem("zenox-preferences");
@@ -319,18 +615,21 @@ function ModuleStatus({ tone, children }: { tone?: string; children: string }) {
   return <span className={`statusTag ${tone ?? "blue"}`}>{children}</span>;
 }
 
-function ModuleToolbar({ primary }: { primary: string }) {
+function ModuleToolbar({ labels, primary }: { labels: { filter: string; export: string }; primary: string }) {
   return (
     <div className="moduleToolbar">
-      <button className="ghostButton">筛选</button>
-      <button className="ghostButton">导出</button>
+      <button className="ghostButton">{labels.filter}</button>
+      <button className="ghostButton">{labels.export}</button>
       <button className="blackButton">{primary}</button>
     </div>
   );
 }
 
-function ModuleWorkspace({ module }: { module: ModuleItem }) {
+function ModuleWorkspace({ language, module }: { language: Preferences["language"]; module: ModuleItem }) {
   const Icon = module.icon;
+  const text = uiText[language];
+  const moduleText: ModuleCopy = text.modules[module.key] ?? { title: module.title, description: "" };
+  const toolbarLabels = text.toolbar;
 
   if (module.key === "schedule") {
     return (
@@ -340,11 +639,11 @@ function ModuleWorkspace({ module }: { module: ModuleItem }) {
             <Icon size={26} />
             <div>
               <p className="overline">Lesson Calendar</p>
-              <h2>日历排课</h2>
-              <span>手动按日期排课，优先发现学生、老师和时间段冲突。</span>
+              <h2>{moduleText.title}</h2>
+              <span>{moduleText.description}</span>
             </div>
           </div>
-          <ModuleToolbar primary="新建课程" />
+          <ModuleToolbar labels={toolbarLabels} primary={moduleText.primary ?? ""} />
         </article>
         <div className="moduleGrid scheduleGrid">
           <article className="panel scheduleBoard">
@@ -387,11 +686,11 @@ function ModuleWorkspace({ module }: { module: ModuleItem }) {
             <Icon size={26} />
             <div>
               <p className="overline">Roster</p>
-              <h2>班级学员</h2>
-              <span>把一对一和小班都放进班级/小组模型，后端可直接接 class_group。</span>
+              <h2>{moduleText.title}</h2>
+              <span>{moduleText.description}</span>
             </div>
           </div>
-          <ModuleToolbar primary="新增学员" />
+          <ModuleToolbar labels={toolbarLabels} primary={moduleText.primary ?? ""} />
         </article>
         <div className="moduleGrid twoColumns">
           <article className="panel">
@@ -446,11 +745,11 @@ function ModuleWorkspace({ module }: { module: ModuleItem }) {
             <Icon size={26} />
             <div>
               <p className="overline">Homework Flow</p>
-              <h2>作业中心</h2>
-              <span>覆盖发布、可见范围、截止提醒和提交状态，先用 mock 数据跑通教师视角。</span>
+              <h2>{moduleText.title}</h2>
+              <span>{moduleText.description}</span>
             </div>
           </div>
-          <ModuleToolbar primary="发布作业" />
+          <ModuleToolbar labels={toolbarLabels} primary={moduleText.primary ?? ""} />
         </article>
         <div className="pipelineGrid">
           {homeworkPipeline.map((item) => (
@@ -477,11 +776,11 @@ function ModuleWorkspace({ module }: { module: ModuleItem }) {
             <Icon size={26} />
             <div>
               <p className="overline">Review Queue</p>
-              <h2>批改反馈</h2>
-              <span>第一版先支持文字点评、得分和错因标签，AI 批改以后再接入。</span>
+              <h2>{moduleText.title}</h2>
+              <span>{moduleText.description}</span>
             </div>
           </div>
-          <ModuleToolbar primary="开始批改" />
+          <ModuleToolbar labels={toolbarLabels} primary={moduleText.primary ?? ""} />
         </article>
         <article className="panel reviewList">
           {reviewQueue.map((item) => (
@@ -509,11 +808,11 @@ function ModuleWorkspace({ module }: { module: ModuleItem }) {
             <Icon size={26} />
             <div>
               <p className="overline">Question Bank</p>
-              <h2>题库论坛</h2>
-              <span>老师和学生都能沉淀好题，按学科、年级、知识点和范围管理。</span>
+              <h2>{moduleText.title}</h2>
+              <span>{moduleText.description}</span>
             </div>
           </div>
-          <ModuleToolbar primary="上传题目" />
+          <ModuleToolbar labels={toolbarLabels} primary={moduleText.primary ?? ""} />
         </article>
         <div className="moduleGrid threeColumns">
           {questionCards.map((question) => (
@@ -537,11 +836,11 @@ function ModuleWorkspace({ module }: { module: ModuleItem }) {
             <Icon size={26} />
             <div>
               <p className="overline">Class Records</p>
-              <h2>上课记录</h2>
-              <span>记录课堂评价、作业情况和下次计划；第一版不要求家长确认记录。</span>
+              <h2>{moduleText.title}</h2>
+              <span>{moduleText.description}</span>
             </div>
           </div>
-          <ModuleToolbar primary="写上课记录" />
+          <ModuleToolbar labels={toolbarLabels} primary={moduleText.primary ?? ""} />
         </article>
         <div className="cardStack">
           {recordCards.map((record) => (
@@ -566,11 +865,11 @@ function ModuleWorkspace({ module }: { module: ModuleItem }) {
             <Icon size={26} />
             <div>
               <p className="overline">Notifications</p>
-              <h2>提醒中心</h2>
-              <span>先覆盖上课和作业提醒；账单提醒按产品决策暂不做。</span>
+              <h2>{moduleText.title}</h2>
+              <span>{moduleText.description}</span>
             </div>
           </div>
-          <ModuleToolbar primary="新建提醒" />
+          <ModuleToolbar labels={toolbarLabels} primary={moduleText.primary ?? ""} />
         </article>
         <article className="panel timelinePanel">
           {reminderCards.map((item) => (
@@ -595,11 +894,11 @@ function ModuleWorkspace({ module }: { module: ModuleItem }) {
             <Icon size={26} />
             <div>
               <p className="overline">{module.key === "monthly" ? "Monthly PDF" : "Billing"}</p>
-              <h2>{module.title}</h2>
-              <span>按学生/班级统计课时和收款，支付只做记录，不接在线交易。</span>
+              <h2>{moduleText.title}</h2>
+              <span>{moduleText.description}</span>
             </div>
           </div>
-          <ModuleToolbar primary={module.key === "monthly" ? "生成 PDF" : "记录收款"} />
+          <ModuleToolbar labels={toolbarLabels} primary={moduleText.primary ?? ""} />
         </article>
         <div className="moduleGrid threeColumns">
           {billingCards.map((item) => (
@@ -623,11 +922,11 @@ function ModuleWorkspace({ module }: { module: ModuleItem }) {
             <Icon size={26} />
             <div>
               <p className="overline">SaaS Plan</p>
-              <h2>权限套餐</h2>
-              <span>保留专业版和工作室版差异，角色可见性由登录态和权限决定。</span>
+              <h2>{moduleText.title}</h2>
+              <span>{moduleText.description}</span>
             </div>
           </div>
-          <ModuleToolbar primary="配置套餐" />
+          <ModuleToolbar labels={toolbarLabels} primary={moduleText.primary ?? ""} />
         </article>
         <article className="panel permissionMatrix">
           {["TENANT_OWNER", "TEACHER", "STUDENT", "PARENT", "PLATFORM_ADMIN"].map((role) => (
@@ -649,11 +948,11 @@ function ModuleWorkspace({ module }: { module: ModuleItem }) {
             <Icon size={26} />
             <div>
               <p className="overline">Custom Fields</p>
-              <h2>自定义字段</h2>
-              <span>给学生档案、课程记录和作业批改预留 SaaS 级扩展能力。</span>
+              <h2>{moduleText.title}</h2>
+              <span>{moduleText.description}</span>
             </div>
           </div>
-          <ModuleToolbar primary="新增字段" />
+          <ModuleToolbar labels={toolbarLabels} primary={moduleText.primary ?? ""} />
         </article>
         <article className="panel fieldsTable">
           {customFields.map(([scope, fields, visible]) => (
@@ -674,8 +973,8 @@ function ModuleWorkspace({ module }: { module: ModuleItem }) {
         <Icon size={34} />
         <div>
           <p className="overline">Module Workspace</p>
-          <h2>{module.title}</h2>
-          <span>这里是独立模块工作区。下一步每个模块会拆成自己的列表、表单、详情和权限页面。</span>
+          <h2>{moduleText.title}</h2>
+          <span>{moduleText.description}</span>
         </div>
       </article>
     </section>
@@ -683,10 +982,12 @@ function ModuleWorkspace({ module }: { module: ModuleItem }) {
 }
 
 function LoginView({
+  onOpenPreferences,
   onLogin,
   preferences,
   updatePreference,
 }: {
+  onOpenPreferences: () => void;
   onLogin: (user: AuthUser) => void;
   preferences: Preferences;
   updatePreference: <K extends keyof Preferences>(key: K, value: Preferences[K]) => void;
@@ -702,6 +1003,13 @@ function LoginView({
   const [isDraggingCaptcha, setIsDraggingCaptcha] = useState(false);
   const [sliderProgress, setSliderProgress] = useState(0);
   const sliderTrackRef = useRef<HTMLDivElement>(null);
+  const authText = uiText[preferences.language].auth;
+  const accountLabelByUsername = {
+    zcx: preferences.language === "zh" ? "管理员 / 工作室负责人" : "Admin / Studio owner",
+    teacher: preferences.language === "zh" ? "授课老师" : "Teacher",
+    student: preferences.language === "zh" ? "学生端体验" : "Student demo",
+    parent: preferences.language === "zh" ? "家长端体验" : "Parent demo",
+  } as Record<string, string>;
 
   const selectedProfile = mockAccounts.find((account) => account.username === selectedAccount) ?? mockAccounts[0];
 
@@ -770,11 +1078,11 @@ function LoginView({
     event.preventDefault();
     const account = mockAccounts.find((item) => item.username === username.trim());
     if (!account || password !== "123456") {
-      setError("账号或密码不正确。演示密码为 123456。");
+      setError(authText.invalid);
       return;
     }
     if (!captchaReady) {
-      setError("请先完成安全验证。");
+      setError(authText.captchaRequired);
       return;
     }
     if (rememberMe) {
@@ -789,13 +1097,13 @@ function LoginView({
   return (
     <section className={`authShell auth-${authPanel}`}>
       <div className="authToolbar">
-        <div className="authPlacementSwitch" aria-label="登录框位置">
+        <div className="authPlacementSwitch" aria-label={authText.placement}>
           {(["left", "center", "right"] as AuthPanelPlacement[]).map((placement) => (
             <button
               className={authPanel === placement ? "active" : ""}
               key={placement}
               onClick={() => setAuthPanel(placement)}
-              title={placement === "left" ? "登录框靠左" : placement === "center" ? "登录框居中" : "登录框靠右"}
+              title={placement === "left" ? authText.left : placement === "center" ? authText.center : authText.right}
               type="button"
             >
               {placement === "left" ? <PanelLeftOpen size={16} /> : placement === "center" ? <LayoutDashboard size={16} /> : <PanelLeftClose size={16} />}
@@ -808,6 +1116,10 @@ function LoginView({
         </button>
         <button className="iconButton" onClick={() => updatePreference("mode", preferences.mode === "dark" ? "light" : "dark")}>
           {preferences.mode === "dark" ? <Sun size={17} /> : <Moon size={17} />}
+        </button>
+        <button className="blackButton" onClick={onOpenPreferences} type="button">
+          <Palette size={17} />
+          {uiText[preferences.language].topbar.theme}
         </button>
       </div>
 
@@ -822,9 +1134,9 @@ function LoginView({
           </div>
         </div>
         <div className="authSlogan">
-          <span className="chip">Inspired by Vben Admin architecture</span>
-          <h1>登录后进入属于当前角色的教学工作台。</h1>
-          <p>从登录态开始决定权限、导航和首页内容。老师看到排课和批改，家长看到课时和账单，学生看到作业与反馈。</p>
+          <span className="chip">{authText.sloganBadge}</span>
+          <h1>{authText.sloganTitle}</h1>
+          <p>{authText.sloganDesc}</p>
         </div>
         <div className="authFeatureGrid">
           <div>
@@ -848,8 +1160,8 @@ function LoginView({
       <article className="authCard panel glowCard">
         <div className="authTitle">
           <p className="overline">Welcome Back</p>
-          <h2>欢迎回到 ZenoX</h2>
-          <span>选择一个演示身份，密码固定为 123456。</span>
+          <h2>{authText.title}</h2>
+          <span>{authText.subtitle}</span>
         </div>
 
         <div className="accountTabs">
@@ -861,24 +1173,24 @@ function LoginView({
               type="button"
             >
               <span>{account.avatar}</span>
-              <strong>{account.label}</strong>
+              <strong>{accountLabelByUsername[account.username] ?? account.label}</strong>
             </button>
           ))}
         </div>
 
         <form className="authForm" onSubmit={handleSubmit}>
           <label>
-            <span>账号</span>
+            <span>{authText.account}</span>
             <div>
               <UserRound size={18} />
-              <input value={username} onChange={(event) => setUsername(event.target.value)} placeholder="请输入账号" />
+              <input value={username} onChange={(event) => setUsername(event.target.value)} placeholder={authText.accountPlaceholder} />
             </div>
           </label>
           <label>
-            <span>密码</span>
+            <span>{authText.password}</span>
             <div>
               <KeyRound size={18} />
-              <input value={password} onChange={(event) => setPassword(event.target.value)} placeholder="请输入密码" type="password" />
+              <input value={password} onChange={(event) => setPassword(event.target.value)} placeholder={authText.passwordPlaceholder} type="password" />
             </div>
           </label>
 
@@ -896,7 +1208,7 @@ function LoginView({
             tabIndex={0}
           >
             <span className="sliderFill" style={{ width: `${sliderProgress}%` }} />
-            <span className="sliderText">{captchaReady ? "安全验证已完成" : "按住滑块，拖到最右侧"}</span>
+            <span className="sliderText">{captchaReady ? authText.captchaDone : authText.captchaHint}</span>
             <span className="sliderHandle" style={{ left: `calc(${sliderProgress}% - ${sliderProgress * 0.46}px)` }}>
               {captchaReady ? <CheckCircle2 size={18} /> : <ArrowRight size={18} />}
             </span>
@@ -905,15 +1217,15 @@ function LoginView({
           <div className="authOptions">
             <label>
               <input checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} type="checkbox" />
-              记住账号
+              {authText.remember}
             </label>
-            <button type="button">忘记密码</button>
+            <button type="button">{authText.forgot}</button>
           </div>
 
           {error ? <p className="authError">{error}</p> : null}
 
           <button className="blackButton authSubmit" type="submit">
-            登录工作台
+            {authText.submit}
             <ArrowRight size={18} />
           </button>
         </form>
@@ -921,15 +1233,195 @@ function LoginView({
         <div className="authAltActions">
           <button className="ghostButton" type="button">
             <Smartphone size={17} />
-            手机验证码
+            {authText.mobile}
           </button>
           <button className="ghostButton" type="button">
             <QrCode size={17} />
-            微信扫码
+            {authText.wechat}
           </button>
         </div>
       </article>
     </section>
+  );
+}
+
+function PreferencesDrawer({
+  drawerOpen,
+  onClose,
+  preferences,
+  updatePreference,
+}: {
+  drawerOpen: boolean;
+  onClose: () => void;
+  preferences: Preferences;
+  updatePreference: <K extends keyof Preferences>(key: K, value: Preferences[K]) => void;
+}) {
+  const text = uiText[preferences.language];
+
+  return (
+    <>
+      <div className={drawerOpen ? "drawerMask open" : "drawerMask"} onClick={onClose} />
+      <aside className={drawerOpen ? "themeDrawer open" : "themeDrawer"} aria-label={text.drawer.title}>
+        <header>
+          <div>
+            <p className="overline">Preferences</p>
+            <h2>{text.drawer.title}</h2>
+          </div>
+          <button className="iconButton" onClick={onClose}>
+            <X size={18} />
+          </button>
+        </header>
+
+        <section className="settingGroup">
+          <label>{text.drawer.mode}</label>
+          <div className="segmented">
+            {(["light", "dark", "auto"] as ThemeMode[]).map((mode) => (
+              <button className={preferences.mode === mode ? "active" : ""} key={mode} onClick={() => updatePreference("mode", mode)}>
+                {mode === "light" ? <Sun size={16} /> : mode === "dark" ? <Moon size={16} /> : <Sparkles size={16} />}
+                {mode === "light" ? "浅色" : mode === "dark" ? "深色" : "跟随"}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="settingGroup">
+          <label>{text.drawer.brand}</label>
+          <div className="themePresets">
+            {accentOptions.map((accent) => (
+              <button
+                className={preferences.accent === accent.key ? `themePreset active ${accent.key}` : `themePreset ${accent.key}`}
+                key={accent.key}
+                onClick={() => updatePreference("accent", accent.key)}
+              >
+                <span className={`swatch ${accent.key}`} />
+                <strong>{accent.label}</strong>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="settingGroup">
+          <label>{text.drawer.layout}</label>
+          <div className="layoutPresets">
+            {layoutOptions.map((layout) => (
+              <button
+                className={preferences.layout === layout.key ? `layoutPreset active ${layout.key}` : `layoutPreset ${layout.key}`}
+                key={layout.key}
+                onClick={() => updatePreference("layout", layout.key)}
+              >
+                <span className="layoutPreview">
+                  <i />
+                  <b />
+                  <em />
+                </span>
+                <strong>{layout.label}</strong>
+                <small>{layout.tip}</small>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="settingGroup">
+          <label>{text.drawer.detail}</label>
+          <div className="detailPresets">
+            <button className={preferences.collapsed ? "detailPreset active collapsed" : "detailPreset collapsed"} onClick={() => updatePreference("collapsed", !preferences.collapsed)}>
+              <span className="detailPreview sidebarPreview">
+                <i />
+                <b />
+                <em />
+              </span>
+              <strong>侧栏状态</strong>
+              <small>{preferences.collapsed ? "图标窄栏" : "完整侧栏"}</small>
+            </button>
+            <button className={preferences.density === "compact" ? "detailPreset active compact" : "detailPreset comfortable"} onClick={() => updatePreference("density", preferences.density === "comfortable" ? "compact" : "comfortable")}>
+              <span className="detailPreview densityPreview">
+                <i />
+                <b />
+                <em />
+              </span>
+              <strong>内容密度</strong>
+              <small>{preferences.density === "comfortable" ? "舒适留白" : "紧凑高效"}</small>
+            </button>
+            <button className={preferences.contentWidth === "boxed" ? "detailPreset active boxed" : "detailPreset fluid"} onClick={() => updatePreference("contentWidth", preferences.contentWidth === "fluid" ? "boxed" : "fluid")}>
+              <span className="detailPreview widthPreview">
+                <i />
+                <b />
+              </span>
+              <strong>内容宽度</strong>
+              <small>{preferences.contentWidth === "fluid" ? "铺满屏幕" : "居中定宽"}</small>
+            </button>
+            <button className={preferences.navStyle === "plain" ? "detailPreset active plain" : "detailPreset glassNav"} onClick={() => updatePreference("navStyle", preferences.navStyle === "glass" ? "plain" : "glass")}>
+              <span className="detailPreview navPreview">
+                <i />
+                <b />
+                <em />
+              </span>
+              <strong>导航风格</strong>
+              <small>{preferences.navStyle === "glass" ? "玻璃质感" : "极简清单"}</small>
+            </button>
+            <button className={`detailPreset active radiusChoice ${preferences.radius}`} onClick={() => updatePreference("radius", preferences.radius === "round" ? "soft" : preferences.radius === "soft" ? "pill" : "round")}>
+              <span className="detailPreview radiusPreview">
+                <i />
+                <b />
+                <em />
+              </span>
+              <strong>圆角风格</strong>
+              <small>{preferences.radius === "round" ? "圆润" : preferences.radius === "soft" ? "轻柔" : "胶囊"}</small>
+            </button>
+          </div>
+        </section>
+
+        <section className="settingGroup">
+          <label>{text.drawer.visual}</label>
+          <div className="effectPresets glassPresets">
+            {glassOptions.map((glass) => (
+              <button className={preferences.glass === glass.key ? `effectPreset active ${glass.key}` : `effectPreset ${glass.key}`} key={glass.key} onClick={() => updatePreference("glass", glass.key)}>
+                <span className="effectPreview">
+                  <i />
+                  <b />
+                </span>
+                <strong>{glass.label}</strong>
+                <small>{glass.tip}</small>
+              </button>
+            ))}
+          </div>
+          <div className="effectPresets motionPresets">
+            {transitionOptions.map((transition) => (
+              <button className={preferences.transition === transition.key ? `effectPreset active ${transition.key}` : `effectPreset ${transition.key}`} key={transition.key} onClick={() => updatePreference("transition", transition.key)}>
+                <span className="motionPreview">
+                  <i />
+                  <b />
+                  <em />
+                </span>
+                <strong>{transition.label}</strong>
+                <small>{transition.tip}</small>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="settingGroup">
+          <label>{text.drawer.effects}</label>
+          <div className="switchRows">
+            <button onClick={() => updatePreference("animation", !preferences.animation)}>
+              <WandSparkles size={17} />
+              页面动画
+              <strong>{preferences.animation ? "开" : "关"}</strong>
+            </button>
+            <button onClick={() => updatePreference("gray", !preferences.gray)}>
+              <ShieldCheck size={17} />
+              灰度模式
+              <strong>{preferences.gray ? "开" : "关"}</strong>
+            </button>
+            <button onClick={() => updatePreference("weak", !preferences.weak)}>
+              <Sparkles size={17} />
+              色弱模式
+              <strong>{preferences.weak ? "开" : "关"}</strong>
+            </button>
+          </div>
+        </section>
+      </aside>
+    </>
   );
 }
 
@@ -961,7 +1453,8 @@ export function App() {
   );
 
   const moduleGroups = useMemo(() => groupModules(visibleModules), [visibleModules]);
-  const activeModule = visibleModules.find((item) => item.key === activeKey) ?? visibleModules[0];
+  const activeModule = visibleModules.find((item) => item.key === activeKey) ?? visibleModules[0] ?? modules[0];
+  const text = uiText[preferences.language];
 
   useEffect(() => {
     if (authSession && visibleModules.length > 0 && !visibleModules.some((item) => item.key === activeKey)) {
@@ -1016,7 +1509,8 @@ export function App() {
       <div className={rootClass}>
         <div className="ambientGlow one" />
         <div className="ambientGlow two" />
-        <LoginView onLogin={handleLogin} preferences={preferences} updatePreference={updatePreference} />
+        <LoginView onOpenPreferences={() => setDrawerOpen(true)} onLogin={handleLogin} preferences={preferences} updatePreference={updatePreference} />
+        <PreferencesDrawer drawerOpen={drawerOpen} onClose={() => setDrawerOpen(false)} preferences={preferences} updatePreference={updatePreference} />
       </div>
     );
   }
@@ -1037,7 +1531,7 @@ export function App() {
           </div>
         </div>
 
-        <nav className="navGroups" aria-label="功能模块">
+        <nav className="navGroups" aria-label={preferences.language === "zh" ? "功能模块" : "Modules"}>
           {Object.entries(moduleGroups).map(([group, items]) =>
             items.length > 0 ? (
               (() => {
@@ -1051,8 +1545,7 @@ export function App() {
                       onClick={() => toggleGroup(groupKey)}
                       aria-expanded={isOpen}
                     >
-                      <span>{group}</span>
-                      <small>{items.length}</small>
+                      <span>{text.groups[groupKey]}</span>
                       <ChevronDown size={15} />
                     </button>
                     <div className="navGroupBody" aria-hidden={!isOpen}>
@@ -1063,11 +1556,11 @@ export function App() {
                             className={activeKey === item.key ? "navButton active" : "navButton"}
                             key={item.key}
                             onClick={() => setActiveKey(item.key)}
-                            title={item.title}
+                            title={text.modules[item.key]?.title ?? item.title}
                           >
                             <Icon size={18} />
-                            <span>{item.title}</span>
-                            {item.badge ? <em>{item.badge}</em> : null}
+                            <span>{text.modules[item.key]?.title ?? item.title}</span>
+                            {item.badge ? <em>{preferences.language === "en" && item.badge === "冲突" ? "Conflict" : item.badge}</em> : null}
                           </button>
                         );
                       })}
@@ -1094,20 +1587,20 @@ export function App() {
             <button
               className="iconButton"
               onClick={() => updatePreference("collapsed", !preferences.collapsed)}
-              title="折叠菜单"
+              title={preferences.language === "zh" ? "折叠菜单" : "Toggle sidebar"}
             >
               {preferences.collapsed ? <PanelLeftOpen size={19} /> : <PanelLeftClose size={19} />}
             </button>
             <div>
-              <p className="overline">Login-based workspace</p>
-              <h1>{activeKey === "dashboard" ? "工作台" : activeModule?.title}</h1>
+              <p className="overline">{text.topbar.overline}</p>
+              <h1>{activeKey === "dashboard" ? text.modules.dashboard.title : text.moduleContext[activeModule.group]}</h1>
             </div>
           </div>
 
           <div className="topActions">
             <label className="searchBox">
               <Search size={17} />
-              <input placeholder="搜索课程、学生、作业、题库" />
+              <input placeholder={text.topbar.search} />
             </label>
             <button
               className="iconButton"
@@ -1118,16 +1611,16 @@ export function App() {
             </button>
             <button className="blackButton" onClick={() => setDrawerOpen(true)}>
               <Palette size={18} />
-              主题
+              {text.topbar.theme}
             </button>
-            <button className="iconButton" onClick={handleLogout} title="退出登录">
+            <button className="iconButton" onClick={handleLogout} title={text.topbar.logout}>
               <LogOut size={18} />
             </button>
           </div>
         </header>
 
         {activeKey === "dashboard" ? (
-          <section className="dashboardView">
+          <section className="dashboardView" key={`dashboard-${preferences.transition}`}>
             <article className="heroPanel glowCard">
               <div>
                 <span className="chip">Zhao Chenxiong Product ID</span>
@@ -1192,16 +1685,16 @@ export function App() {
             </section>
           </section>
         ) : (
-          <ModuleWorkspace module={activeModule} />
+          <ModuleWorkspace key={`${activeModule.key}-${preferences.transition}-${preferences.language}`} language={preferences.language} module={activeModule} />
         )}
       </main>
 
       <div className={drawerOpen ? "drawerMask open" : "drawerMask"} onClick={() => setDrawerOpen(false)} />
-      <aside className={drawerOpen ? "themeDrawer open" : "themeDrawer"} aria-label="主题配置">
+      <aside className={drawerOpen ? "themeDrawer open" : "themeDrawer"} aria-label={text.drawer.title}>
         <header>
           <div>
             <p className="overline">Preferences</p>
-            <h2>主题配置</h2>
+            <h2>{text.drawer.title}</h2>
           </div>
           <button className="iconButton" onClick={() => setDrawerOpen(false)}>
             <X size={18} />
@@ -1209,7 +1702,7 @@ export function App() {
         </header>
 
         <section className="settingGroup">
-          <label>主题模式</label>
+          <label>{text.drawer.mode}</label>
           <div className="segmented">
             {(["light", "dark", "auto"] as ThemeMode[]).map((mode) => (
               <button className={preferences.mode === mode ? "active" : ""} key={mode} onClick={() => updatePreference("mode", mode)}>
@@ -1221,7 +1714,7 @@ export function App() {
         </section>
 
         <section className="settingGroup">
-          <label>品牌色</label>
+          <label>{text.drawer.brand}</label>
           <div className="themePresets">
             {accentOptions.map((accent) => (
               <button
@@ -1237,7 +1730,7 @@ export function App() {
         </section>
 
         <section className="settingGroup">
-          <label>布局模式</label>
+          <label>{text.drawer.layout}</label>
           <div className="layoutPresets">
             {layoutOptions.map((layout) => (
               <button
@@ -1258,56 +1751,86 @@ export function App() {
         </section>
 
         <section className="settingGroup">
-          <label>布局细节</label>
-          <div className="switchRows">
-            <button onClick={() => updatePreference("collapsed", !preferences.collapsed)}>
-              <Menu size={17} />
-              侧栏折叠
-              <strong>{preferences.collapsed ? "开" : "关"}</strong>
+          <label>{text.drawer.detail}</label>
+          <div className="detailPresets">
+            <button className={preferences.collapsed ? "detailPreset active collapsed" : "detailPreset collapsed"} onClick={() => updatePreference("collapsed", !preferences.collapsed)}>
+              <span className="detailPreview sidebarPreview">
+                <i />
+                <b />
+                <em />
+              </span>
+              <strong>侧栏状态</strong>
+              <small>{preferences.collapsed ? "图标窄栏" : "完整侧栏"}</small>
             </button>
-            <button onClick={() => updatePreference("density", preferences.density === "comfortable" ? "compact" : "comfortable")}>
-              <Settings2 size={17} />
-              内容密度
-              <strong>{preferences.density === "comfortable" ? "舒适" : "紧凑"}</strong>
+            <button className={preferences.density === "compact" ? "detailPreset active compact" : "detailPreset comfortable"} onClick={() => updatePreference("density", preferences.density === "comfortable" ? "compact" : "comfortable")}>
+              <span className="detailPreview densityPreview">
+                <i />
+                <b />
+                <em />
+              </span>
+              <strong>内容密度</strong>
+              <small>{preferences.density === "comfortable" ? "舒适留白" : "紧凑高效"}</small>
             </button>
-            <button onClick={() => updatePreference("contentWidth", preferences.contentWidth === "fluid" ? "boxed" : "fluid")}>
-              <PanelLeftOpen size={17} />
-              内容宽度
-              <strong>{preferences.contentWidth === "fluid" ? "铺满" : "定宽"}</strong>
+            <button className={preferences.contentWidth === "boxed" ? "detailPreset active boxed" : "detailPreset fluid"} onClick={() => updatePreference("contentWidth", preferences.contentWidth === "fluid" ? "boxed" : "fluid")}>
+              <span className="detailPreview widthPreview">
+                <i />
+                <b />
+              </span>
+              <strong>内容宽度</strong>
+              <small>{preferences.contentWidth === "fluid" ? "铺满屏幕" : "居中定宽"}</small>
             </button>
-            <button onClick={() => updatePreference("navStyle", preferences.navStyle === "glass" ? "plain" : "glass")}>
-              <Home size={17} />
-              导航风格
-              <strong>{preferences.navStyle === "glass" ? "玻璃" : "极简"}</strong>
+            <button className={preferences.navStyle === "plain" ? "detailPreset active plain" : "detailPreset glassNav"} onClick={() => updatePreference("navStyle", preferences.navStyle === "glass" ? "plain" : "glass")}>
+              <span className="detailPreview navPreview">
+                <i />
+                <b />
+                <em />
+              </span>
+              <strong>导航风格</strong>
+              <small>{preferences.navStyle === "glass" ? "玻璃质感" : "极简清单"}</small>
             </button>
-            <button onClick={() => updatePreference("radius", preferences.radius === "round" ? "soft" : preferences.radius === "soft" ? "pill" : "round")}>
-              <FileText size={17} />
-              圆角
-              <strong>{preferences.radius === "round" ? "圆润" : preferences.radius === "soft" ? "轻柔" : "胶囊"}</strong>
+            <button className={`detailPreset active radiusChoice ${preferences.radius}`} onClick={() => updatePreference("radius", preferences.radius === "round" ? "soft" : preferences.radius === "soft" ? "pill" : "round")}>
+              <span className="detailPreview radiusPreview">
+                <i />
+                <b />
+                <em />
+              </span>
+              <strong>圆角风格</strong>
+              <small>{preferences.radius === "round" ? "圆润" : preferences.radius === "soft" ? "轻柔" : "胶囊"}</small>
             </button>
           </div>
         </section>
 
         <section className="settingGroup">
-          <label>视觉质感</label>
-          <div className="segmented">
-            {(["light", "frosted", "crystal"] as Glass[]).map((glass) => (
-              <button className={preferences.glass === glass ? "active" : ""} key={glass} onClick={() => updatePreference("glass", glass)}>
-                {glass === "light" ? "轻透" : glass === "frosted" ? "磨砂" : "水晶"}
+          <label>{text.drawer.visual}</label>
+          <div className="effectPresets glassPresets">
+            {glassOptions.map((glass) => (
+              <button className={preferences.glass === glass.key ? `effectPreset active ${glass.key}` : `effectPreset ${glass.key}`} key={glass.key} onClick={() => updatePreference("glass", glass.key)}>
+                <span className="effectPreview">
+                  <i />
+                  <b />
+                </span>
+                <strong>{glass.label}</strong>
+                <small>{glass.tip}</small>
               </button>
             ))}
           </div>
-          <div className="segmented">
-            {(["fade", "slide", "scale"] as Transition[]).map((transition) => (
-              <button className={preferences.transition === transition ? "active" : ""} key={transition} onClick={() => updatePreference("transition", transition)}>
-                {transition === "fade" ? "淡入" : transition === "slide" ? "滑入" : "缩放"}
+          <div className="effectPresets motionPresets">
+            {transitionOptions.map((transition) => (
+              <button className={preferences.transition === transition.key ? `effectPreset active ${transition.key}` : `effectPreset ${transition.key}`} key={transition.key} onClick={() => updatePreference("transition", transition.key)}>
+                <span className="motionPreview">
+                  <i />
+                  <b />
+                  <em />
+                </span>
+                <strong>{transition.label}</strong>
+                <small>{transition.tip}</small>
               </button>
             ))}
           </div>
         </section>
 
         <section className="settingGroup">
-          <label>辅助效果</label>
+          <label>{text.drawer.effects}</label>
           <div className="switchRows">
             <button onClick={() => updatePreference("animation", !preferences.animation)}>
               <WandSparkles size={17} />

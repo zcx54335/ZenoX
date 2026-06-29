@@ -20,6 +20,13 @@
   --panel: rgba(255, 255, 255, 0.58);
   --panel-strong: rgba(255, 255, 255, 0.78);
   --panel-tint: rgba(79, 124, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.64);
+  --glass-inset-top: rgba(255, 255, 255, 0.72);
+  --glass-inset-bottom: rgba(255, 255, 255, 0.22);
+  --glass-highlight: rgba(255, 255, 255, 0.74);
+  --glass-sheen-opacity: 1;
+  --hover-lift: -3px;
+  --hover-scale: 1;
   --line: rgba(92, 111, 142, 0.14);
   --radius: 28px;
   --shadow: 0 34px 96px rgba(var(--accent-rgb), 0.16);
@@ -141,9 +148,50 @@ button {
   --panel: rgba(13, 18, 32, 0.68);
   --panel-strong: rgba(30, 39, 61, 0.88);
   --panel-tint: rgba(var(--accent-rgb), 0.18);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-inset-top: rgba(255, 255, 255, 0.13);
+  --glass-inset-bottom: rgba(255, 255, 255, 0.05);
+  --glass-highlight: rgba(255, 255, 255, 0.12);
   --line: rgba(255, 255, 255, 0.16);
   --shadow: 0 38px 120px rgba(0, 0, 0, 0.46);
   --text-shadow: 0 1px 1px rgba(0, 0, 0, 0.42);
+}
+
+.mode-dark.glass-light {
+  --glass-blur: 12px;
+  --glass-saturate: 120%;
+  --panel: rgba(20, 28, 46, 0.9);
+  --panel-strong: rgba(31, 42, 66, 0.96);
+  --panel-tint: rgba(var(--accent-rgb), 0.08);
+  --glass-border: rgba(255, 255, 255, 0.16);
+  --glass-highlight: rgba(255, 255, 255, 0.08);
+  --glass-sheen-opacity: 0.42;
+  --shadow: 0 20px 54px rgba(0, 0, 0, 0.34);
+}
+
+.mode-dark.glass-frosted {
+  --glass-blur: 40px;
+  --glass-saturate: 180%;
+  --panel: rgba(13, 18, 32, 0.68);
+  --panel-strong: rgba(30, 39, 61, 0.88);
+  --panel-tint: rgba(var(--accent-rgb), 0.16);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-highlight: rgba(255, 255, 255, 0.12);
+  --glass-sheen-opacity: 0.82;
+}
+
+.mode-dark.glass-crystal {
+  --glass-blur: 72px;
+  --glass-saturate: 260%;
+  --panel: rgba(8, 12, 24, 0.42);
+  --panel-strong: rgba(24, 35, 58, 0.72);
+  --panel-tint: rgba(var(--accent-rgb), 0.24);
+  --glass-border: rgba(255, 255, 255, 0.28);
+  --glass-highlight: rgba(255, 255, 255, 0.18);
+  --glass-sheen-opacity: 1;
+  --shadow:
+    0 38px 118px rgba(0, 0, 0, 0.48),
+    0 0 64px rgba(var(--accent-rgb), 0.16);
 }
 
 .radius-soft {
@@ -158,22 +206,106 @@ button {
   --spacing: 12px;
 }
 
+.zenoxApp.density-compact {
+  gap: 14px;
+  padding: 14px;
+}
+
+.density-compact .sideNav {
+  top: 14px;
+  height: calc(100vh - 28px);
+  padding: 12px;
+}
+
+.density-compact .topbar {
+  min-height: 64px;
+}
+
+.density-compact .heroPanel {
+  min-height: 218px;
+  padding: 22px;
+}
+
+.density-compact .panel {
+  padding: 16px;
+}
+
+.density-compact .navButton {
+  min-height: 36px;
+}
+
+.density-compact .statCard {
+  min-height: 82px;
+  padding: 12px;
+}
+
 .glass-light {
-  --glass-blur: 24px;
-  --glass-saturate: 135%;
-  --panel: rgba(255, 255, 255, 0.38);
+  --glass-blur: 14px;
+  --glass-saturate: 118%;
+  --panel: rgba(255, 255, 255, 0.82);
+  --panel-strong: rgba(255, 255, 255, 0.92);
+  --panel-tint: rgba(var(--accent-rgb), 0.04);
+  --glass-border: rgba(255, 255, 255, 0.92);
+  --glass-inset-top: rgba(255, 255, 255, 0.96);
+  --glass-inset-bottom: rgba(255, 255, 255, 0.42);
+  --glass-highlight: rgba(255, 255, 255, 0.36);
+  --glass-sheen-opacity: 0.36;
+  --shadow: 0 20px 48px rgba(var(--accent-rgb), 0.1);
+}
+
+.glass-frosted {
+  --glass-blur: 38px;
+  --glass-saturate: 178%;
+  --panel: rgba(255, 255, 255, 0.58);
+  --panel-strong: rgba(255, 255, 255, 0.78);
+  --panel-tint: rgba(var(--accent-rgb), 0.1);
+  --glass-border: rgba(255, 255, 255, 0.64);
+  --glass-inset-top: rgba(255, 255, 255, 0.72);
+  --glass-inset-bottom: rgba(255, 255, 255, 0.22);
+  --glass-highlight: rgba(255, 255, 255, 0.74);
+  --glass-sheen-opacity: 0.82;
 }
 
 .glass-crystal {
-  --glass-blur: 56px;
-  --glass-saturate: 230%;
-  --panel: rgba(255, 255, 255, 0.34);
-  --panel-strong: rgba(255, 255, 255, 0.7);
+  --glass-blur: 68px;
+  --glass-saturate: 260%;
+  --panel: rgba(255, 255, 255, 0.28);
+  --panel-strong: rgba(255, 255, 255, 0.58);
+  --panel-tint: rgba(var(--accent-rgb), 0.18);
+  --glass-border: rgba(255, 255, 255, 0.78);
+  --glass-inset-top: rgba(255, 255, 255, 0.88);
+  --glass-inset-bottom: rgba(var(--accent-2-rgb), 0.22);
+  --glass-highlight: rgba(255, 255, 255, 0.92);
+  --glass-sheen-opacity: 1;
+  --shadow:
+    0 34px 108px rgba(var(--accent-rgb), 0.22),
+    0 0 48px rgba(var(--accent-2-rgb), 0.18);
+}
+
+.transition-fade {
+  --hover-lift: -1px;
+  --hover-scale: 1;
+}
+
+.transition-slide {
+  --hover-lift: -4px;
+  --hover-scale: 1;
+}
+
+.transition-scale {
+  --hover-lift: -2px;
+  --hover-scale: 1.018;
 }
 
 .content-boxed .mainStage {
   max-width: 1180px;
   width: 100%;
+  justify-self: center;
+}
+
+.content-boxed {
+  grid-template-columns: var(--nav-width) minmax(0, 1240px);
+  justify-content: center;
 }
 
 .is-gray {
@@ -255,15 +387,15 @@ button {
 .panel,
 .heroPanel,
 .themeDrawer {
-  border: 1px solid rgba(255, 255, 255, 0.64);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.62), var(--panel-tint)),
     var(--panel);
   box-shadow:
     var(--shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.22);
+    inset 0 1px 0 var(--glass-inset-top),
+    inset 0 -1px 0 var(--glass-inset-bottom);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
 }
@@ -278,9 +410,10 @@ button {
   z-index: 0;
   border-radius: calc(var(--radius) - 2px);
   background:
-    radial-gradient(ellipse at 14% 0%, rgba(255, 255, 255, 0.74), transparent 34%),
+    radial-gradient(ellipse at 14% 0%, var(--glass-highlight), transparent 34%),
     radial-gradient(ellipse at 86% 8%, rgba(var(--accent-rgb), 0.16), transparent 30%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.52), transparent 44%);
+  opacity: var(--glass-sheen-opacity);
   pointer-events: none;
 }
 
@@ -303,8 +436,31 @@ button {
 }
 
 .nav-plain .sideNav {
-  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(var(--accent-rgb), 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.58)),
+    rgba(255, 255, 255, 0.72);
+  box-shadow: 0 14px 34px rgba(68, 82, 112, 0.08);
+  backdrop-filter: blur(12px) saturate(120%);
+}
+
+.nav-plain .sideNav::before {
+  opacity: 0.18;
+}
+
+.nav-plain .navButton:hover,
+.nav-plain .navButton.active {
+  border-color: rgba(var(--accent-rgb), 0.2);
+  background: rgba(var(--accent-rgb), 0.1);
   box-shadow: none;
+}
+
+.nav-plain .navButton::after {
+  display: none;
+}
+
+.nav-plain .accountCard {
+  background: rgba(var(--accent-rgb), 0.08);
 }
 
 .brandArea,
@@ -417,7 +573,7 @@ button {
 
 .navGroupTitle {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
   width: 100%;
@@ -691,12 +847,12 @@ button {
 
 .heroPanel:hover,
 .panel:hover {
-  transform: translateY(-3px);
+  transform: translateY(var(--hover-lift)) scale(var(--hover-scale));
   border-color: rgba(255, 255, 255, 0.78);
   box-shadow:
     0 34px 100px rgba(var(--accent-rgb), 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.22);
+    inset 0 1px 0 var(--glass-inset-top),
+    inset 0 -1px 0 var(--glass-inset-bottom);
 }
 
 .heroPanel h2 {
@@ -1826,6 +1982,409 @@ button {
   box-shadow: 0 12px 24px rgba(62, 84, 124, 0.12);
 }
 
+.effectPresets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.effectPreset {
+  display: grid;
+  gap: 8px;
+  min-height: 118px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.46), rgba(var(--accent-rgb), 0.08)),
+    rgba(255, 255, 255, 0.32);
+  color: var(--ink);
+  text-align: left;
+  overflow: hidden;
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    background 220ms ease;
+}
+
+.effectPreset:hover,
+.effectPreset.active {
+  transform: translateY(-2px);
+  border-color: rgba(var(--accent-rgb), 0.48);
+  box-shadow:
+    0 18px 42px rgba(var(--accent-rgb), 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+.effectPreset strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.effectPreset small {
+  color: var(--text-soft);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.effectPreview,
+.motionPreview {
+  position: relative;
+  display: block;
+  height: 42px;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.effectPreview i,
+.effectPreview b,
+.motionPreview i,
+.motionPreview b,
+.motionPreview em {
+  position: absolute;
+  display: block;
+}
+
+.effectPreview i {
+  inset: 0;
+  border-radius: inherit;
+}
+
+.effectPreview b {
+  right: 9px;
+  bottom: 8px;
+  width: 38px;
+  height: 12px;
+  border-radius: 999px;
+}
+
+.effectPreset.light .effectPreview i {
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.98);
+}
+
+.effectPreset.light .effectPreview b {
+  background: rgba(var(--accent-rgb), 0.24);
+}
+
+.effectPreset.frosted .effectPreview i {
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.72), transparent 32%),
+    rgba(255, 255, 255, 0.46);
+  backdrop-filter: blur(16px);
+}
+
+.effectPreset.frosted .effectPreview b {
+  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.38), rgba(var(--accent-2-rgb), 0.32));
+}
+
+.effectPreset.crystal .effectPreview i {
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.74), transparent 35%, rgba(var(--accent-rgb), 0.24) 64%, rgba(255, 255, 255, 0.32)),
+    rgba(255, 255, 255, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 0 24px rgba(var(--accent-2-rgb), 0.28);
+}
+
+.effectPreset.crystal .effectPreview b {
+  background: #fff;
+  box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.44);
+}
+
+.motionPreview {
+  background: rgba(255, 255, 255, 0.36);
+}
+
+.motionPreview i,
+.motionPreview b,
+.motionPreview em {
+  top: 11px;
+  width: 20px;
+  height: 20px;
+  border-radius: 8px;
+  background: var(--accent);
+}
+
+.motionPreview i {
+  left: 10px;
+  opacity: 0.28;
+}
+
+.motionPreview b {
+  left: 38px;
+  opacity: 0.58;
+}
+
+.motionPreview em {
+  left: 66px;
+  opacity: 0.94;
+}
+
+.effectPreset.fade .motionPreview i,
+.effectPreset.fade .motionPreview b,
+.effectPreset.fade .motionPreview em {
+  left: 32px;
+  transform: scale(1);
+}
+
+.effectPreset.slide .motionPreview i {
+  left: 9px;
+}
+
+.effectPreset.slide .motionPreview b {
+  left: 37px;
+}
+
+.effectPreset.slide .motionPreview em {
+  left: 66px;
+}
+
+.effectPreset.scale .motionPreview i {
+  left: 12px;
+  transform: scale(0.62);
+}
+
+.effectPreset.scale .motionPreview b {
+  left: 38px;
+  transform: scale(0.88);
+}
+
+.effectPreset.scale .motionPreview em {
+  left: 64px;
+  transform: scale(1.16);
+}
+
+.detailPresets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.detailPreset {
+  display: grid;
+  gap: 8px;
+  min-height: 124px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.46), rgba(var(--accent-rgb), 0.08)),
+    rgba(255, 255, 255, 0.32);
+  color: var(--ink);
+  text-align: left;
+  overflow: hidden;
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    background 220ms ease;
+}
+
+.detailPreset:hover,
+.detailPreset.active {
+  transform: translateY(-2px);
+  border-color: rgba(var(--accent-rgb), 0.48);
+  box-shadow:
+    0 18px 42px rgba(var(--accent-rgb), 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+.detailPreset strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.detailPreset small {
+  color: var(--text-soft);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.detailPreview {
+  position: relative;
+  display: block;
+  height: 48px;
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.58), rgba(var(--accent-rgb), 0.1)),
+    rgba(255, 255, 255, 0.36);
+  overflow: hidden;
+}
+
+.detailPreview i,
+.detailPreview b,
+.detailPreview em {
+  position: absolute;
+  display: block;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.sidebarPreview i {
+  left: 8px;
+  top: 8px;
+  width: 12px;
+  height: 32px;
+  border-radius: 7px;
+}
+
+.sidebarPreview b,
+.sidebarPreview em {
+  left: 28px;
+  height: 8px;
+}
+
+.sidebarPreview b {
+  top: 11px;
+  width: 48px;
+}
+
+.sidebarPreview em {
+  top: 28px;
+  width: 34px;
+  opacity: 0.42;
+}
+
+.detailPreset.collapsed.active .sidebarPreview i {
+  width: 24px;
+}
+
+.detailPreset.collapsed.active .sidebarPreview b,
+.detailPreset.collapsed.active .sidebarPreview em {
+  width: 10px;
+  opacity: 0.26;
+}
+
+.densityPreview i,
+.densityPreview b,
+.densityPreview em {
+  left: 10px;
+  right: 10px;
+  height: 8px;
+}
+
+.densityPreview i {
+  top: 10px;
+}
+
+.densityPreview b {
+  top: 24px;
+  width: auto;
+  opacity: 0.62;
+}
+
+.densityPreview em {
+  top: 38px;
+  width: auto;
+  opacity: 0.32;
+}
+
+.detailPreset.compact .densityPreview i {
+  top: 12px;
+}
+
+.detailPreset.compact .densityPreview b {
+  top: 22px;
+}
+
+.detailPreset.compact .densityPreview em {
+  top: 32px;
+}
+
+.widthPreview i,
+.widthPreview b {
+  top: 9px;
+  bottom: 9px;
+  border-radius: 10px;
+}
+
+.widthPreview i {
+  left: 7px;
+  right: 7px;
+  opacity: 0.2;
+}
+
+.widthPreview b {
+  left: 22px;
+  right: 22px;
+  background: var(--accent);
+}
+
+.detailPreset.fluid .widthPreview b {
+  left: 8px;
+  right: 8px;
+}
+
+.navPreview i {
+  left: 10px;
+  top: 8px;
+  width: 24px;
+  height: 32px;
+  border-radius: 11px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(var(--accent-rgb), 0.32));
+  box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.22);
+}
+
+.navPreview b,
+.navPreview em {
+  left: 43px;
+  height: 8px;
+}
+
+.navPreview b {
+  top: 12px;
+  width: 38px;
+}
+
+.navPreview em {
+  top: 28px;
+  width: 28px;
+  opacity: 0.42;
+}
+
+.detailPreset.plain .navPreview i {
+  background: rgba(var(--accent-rgb), 0.18);
+  box-shadow: none;
+}
+
+.radiusPreview i,
+.radiusPreview b,
+.radiusPreview em {
+  top: 13px;
+  width: 22px;
+  height: 22px;
+  background: rgba(var(--accent-rgb), 0.8);
+}
+
+.radiusPreview i {
+  left: 10px;
+  border-radius: 6px;
+}
+
+.radiusPreview b {
+  left: 39px;
+  border-radius: 12px;
+}
+
+.radiusPreview em {
+  left: 68px;
+  border-radius: 999px;
+}
+
+.detailPreset.radiusChoice.soft .radiusPreview i,
+.detailPreset.radiusChoice.round .radiusPreview b,
+.detailPreset.radiusChoice.pill .radiusPreview em {
+  background: var(--accent);
+  box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.38);
+  transform: scale(1.16);
+}
+
 .themePresets,
 .layoutPresets {
   display: grid;
@@ -2022,14 +2581,14 @@ button {
 .mode-dark .panel,
 .mode-dark .heroPanel,
 .mode-dark .themeDrawer {
-  border-color: rgba(255, 255, 255, 0.18);
+  border-color: var(--glass-border);
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.13), rgba(var(--accent-rgb), 0.1)),
     var(--panel);
   box-shadow:
     var(--shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.13),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+    inset 0 1px 0 var(--glass-inset-top),
+    inset 0 -1px 0 var(--glass-inset-bottom);
 }
 
 .mode-dark .sideNav::before,
@@ -2037,9 +2596,10 @@ button {
 .mode-dark .heroPanel::before,
 .mode-dark .themeDrawer::before {
   background:
-    radial-gradient(ellipse at 16% 0%, rgba(255, 255, 255, 0.12), transparent 34%),
+    radial-gradient(ellipse at 16% 0%, var(--glass-highlight), transparent 34%),
     radial-gradient(ellipse at 88% 8%, rgba(var(--accent-rgb), 0.18), transparent 32%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 44%);
+  opacity: var(--glass-sheen-opacity);
 }
 
 .mode-dark .navButton:hover,
@@ -2063,6 +2623,8 @@ button {
 .mode-dark .fieldsTable div,
 .mode-dark .permissionMatrix div,
 .mode-dark .segmented,
+.mode-dark .effectPreset,
+.mode-dark .detailPreset,
 .mode-dark .themePreset,
 .mode-dark .layoutPreset,
 .mode-dark .switchRows button,
@@ -2112,6 +2674,8 @@ button {
 .mode-dark .scheduleRow,
 .mode-dark .ghostButton,
 .mode-dark .themePreset,
+.mode-dark .effectPreset,
+.mode-dark .detailPreset,
 .mode-dark .layoutPreset,
 .mode-dark .switchRows button,
 .mode-dark .segmented button {
@@ -2134,6 +2698,8 @@ button {
 .mode-dark .authFeatureGrid strong,
 .mode-dark .authTitle h2,
 .mode-dark .accountTabs strong,
+.mode-dark .effectPreset strong,
+.mode-dark .detailPreset strong,
 .mode-dark .insightPanel h3,
 .mode-dark .pipelineColumn h3,
 .mode-dark .questionCard h3,
@@ -2211,6 +2777,32 @@ button {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.14),
     0 12px 30px rgba(0, 0, 0, 0.26);
+}
+
+.mode-dark .effectPreset small {
+  color: rgba(238, 244, 255, 0.72);
+}
+
+.mode-dark .effectPreset.active,
+.mode-dark .detailPreset.active {
+  border-color: rgba(var(--accent-rgb), 0.58);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(var(--accent-rgb), 0.16)),
+    rgba(255, 255, 255, 0.1);
+}
+
+.mode-dark .detailPreset small {
+  color: rgba(238, 244, 255, 0.72);
+}
+
+.mode-dark .detailPreview {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(var(--accent-rgb), 0.14)),
+    rgba(255, 255, 255, 0.06);
+}
+
+.mode-dark .motionPreview {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .mode-dark .navGroups::-webkit-scrollbar-track,
@@ -2401,7 +2993,7 @@ button {
 .motion-on .topbar,
 .motion-on .dashboardView,
 .motion-on .moduleView {
-  animation: riseIn 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: riseIn 1180ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .transition-fade.motion-on .sideNav,
@@ -2409,6 +3001,7 @@ button {
 .transition-fade.motion-on .dashboardView,
 .transition-fade.motion-on .moduleView {
   animation-name: fadeIn;
+  animation-duration: 1100ms;
 }
 
 .transition-scale.motion-on .sideNav,
@@ -2416,6 +3009,7 @@ button {
 .transition-scale.motion-on .dashboardView,
 .transition-scale.motion-on .moduleView {
   animation-name: scaleIn;
+  animation-duration: 1080ms;
 }
 
 .motion-off *,
@@ -2516,8 +3110,21 @@ button {
 @keyframes riseIn {
   from {
     opacity: 0;
-    transform: translateY(18px) scale(0.99);
-    filter: blur(8px);
+    transform: translate3d(-86px, 12px, 0) scale(0.985);
+    filter: blur(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(0) scale(1);
+    filter: blur(22px);
   }
   to {
     opacity: 1;
@@ -2526,26 +3133,15 @@ button {
   }
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    filter: blur(10px);
-  }
-  to {
-    opacity: 1;
-    filter: blur(0);
-  }
-}
-
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.965);
-    filter: blur(10px);
+    transform: perspective(900px) translateY(26px) scale(0.84);
+    filter: blur(18px);
   }
   to {
+    transform: perspective(900px) translateY(0) scale(1);
     opacity: 1;
-    transform: scale(1);
     filter: blur(0);
   }
 }
@@ -2641,6 +3237,8 @@ button {
   .mode-auto .fieldsTable div,
   .mode-auto .permissionMatrix div,
   .mode-auto .segmented,
+  .mode-auto .effectPreset,
+  .mode-auto .detailPreset,
   .mode-auto .themePreset,
   .mode-auto .layoutPreset,
   .mode-auto .switchRows button,
@@ -2845,6 +3443,7 @@ button {
   }
 
   .authFeatureGrid,
+  .detailPresets,
   .accountTabs,
   .authAltActions {
     grid-template-columns: 1fr;
