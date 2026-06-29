@@ -944,6 +944,807 @@ button {
   color: var(--muted);
 }
 
+.moduleHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 154px;
+}
+
+.moduleTitle {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.moduleTitle > svg {
+  flex: 0 0 auto;
+  width: 58px;
+  height: 58px;
+  padding: 14px;
+  border-radius: 20px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.58), rgba(var(--accent-rgb), 0.16)),
+    rgba(255, 255, 255, 0.34);
+  color: var(--accent);
+  box-shadow: 0 18px 34px rgba(var(--accent-rgb), 0.14);
+}
+
+.moduleTitle h2 {
+  margin: 4px 0 0;
+  color: var(--ink);
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1.04;
+  letter-spacing: 0;
+}
+
+.moduleTitle span,
+.businessCard span,
+.studentCard span,
+.questionCard span,
+.recordCard span,
+.timelineItem span,
+.fieldsTable span,
+.permissionMatrix span,
+.pipelineColumn > span,
+.scheduleRow span {
+  color: var(--muted);
+}
+
+.moduleToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ghostButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.54);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.36);
+  color: var(--ink);
+  font-weight: 780;
+}
+
+.ghostButton:hover {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.58), rgba(var(--accent-rgb), 0.1)),
+    rgba(255, 255, 255, 0.48);
+}
+
+.moduleGrid {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.scheduleGrid {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.34fr);
+}
+
+.twoColumns {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+}
+
+.threeColumns,
+.pipelineGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.boardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.boardHeader strong {
+  color: var(--ink);
+  font-size: 19px;
+}
+
+.segmented.small {
+  width: 178px;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.segmented.small button {
+  min-height: 32px;
+}
+
+.scheduleRow,
+.reviewRow,
+.recordCard,
+.fieldsTable div,
+.permissionMatrix div,
+.timelineItem {
+  display: grid;
+  align-items: center;
+  gap: 14px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.38);
+}
+
+.scheduleRow {
+  grid-template-columns: 112px minmax(0, 1fr) auto;
+  min-height: 92px;
+  margin-top: 10px;
+  padding: 14px;
+}
+
+.scheduleRow time,
+.timelineItem time {
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.scheduleRow strong,
+.businessCard strong,
+.studentCard strong,
+.reviewRow strong,
+.recordCard strong,
+.timelineItem strong,
+.fieldsTable strong,
+.permissionMatrix strong {
+  display: block;
+  color: var(--ink);
+}
+
+.scheduleRow small,
+.businessCard small,
+.studentCard small {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-soft);
+}
+
+.scheduleRow span {
+  display: block;
+  margin-top: 6px;
+}
+
+.statusTag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  width: max-content;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.13);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 880;
+  white-space: nowrap;
+}
+
+.statusTag.green {
+  background: rgba(22, 165, 111, 0.14);
+  color: #0b8b5a;
+}
+
+.statusTag.amber {
+  background: rgba(215, 122, 0, 0.14);
+  color: #b35f00;
+}
+
+.statusTag.red {
+  background: rgba(236, 72, 95, 0.14);
+  color: #c9234a;
+}
+
+.statusTag.violet {
+  background: rgba(118, 92, 255, 0.14);
+  color: #5c46df;
+}
+
+.insightPanel {
+  align-content: start;
+}
+
+.insightPanel h3,
+.pipelineColumn h3,
+.questionCard h3,
+.financeCard h3 {
+  margin: 8px 0 0;
+  color: var(--ink);
+  font-size: 23px;
+  letter-spacing: 0;
+}
+
+.insightPanel > strong {
+  display: block;
+  margin-top: 22px;
+  color: var(--ink);
+  font-size: 32px;
+}
+
+.insightPanel > span {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.cardStack {
+  display: grid;
+  gap: 12px;
+}
+
+.businessCard,
+.studentCard {
+  min-height: 116px;
+  padding: 16px;
+  border-radius: 20px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.46), rgba(var(--accent-rgb), 0.08)),
+    rgba(255, 255, 255, 0.34);
+}
+
+.businessCard em,
+.studentCard em {
+  display: inline-flex;
+  margin-top: 12px;
+  color: var(--accent);
+  font-style: normal;
+  font-weight: 850;
+}
+
+.studentGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pipelineColumn {
+  min-height: 210px;
+}
+
+.pipelineColumn > div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.reviewList {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.reviewRow {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  min-height: 76px;
+  padding: 14px;
+}
+
+.reviewRow span {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+}
+
+.tagList {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.questionCard,
+.financeCard {
+  min-height: 218px;
+}
+
+.questionCard h3 {
+  min-height: 56px;
+}
+
+.questionCard .ghostButton {
+  margin-top: 22px;
+}
+
+.recordCard {
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 88px;
+  padding: 18px;
+}
+
+.timelinePanel {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.timelineItem {
+  grid-template-columns: 96px minmax(0, 1fr);
+  min-height: 74px;
+  padding: 15px;
+}
+
+.financeCard > span {
+  color: var(--muted);
+  font-weight: 780;
+}
+
+.financeCard strong {
+  display: block;
+  margin: 18px 0 14px;
+  color: var(--ink);
+  font-size: 34px;
+}
+
+.fieldsTable,
+.permissionMatrix {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.fieldsTable div {
+  grid-template-columns: 140px minmax(0, 1fr) auto;
+  min-height: 66px;
+  padding: 14px;
+}
+
+.permissionMatrix div {
+  grid-template-columns: 190px minmax(0, 1fr);
+  min-height: 64px;
+  padding: 14px;
+}
+
+.authShell {
+  grid-column: 1 / -1;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 460px);
+  gap: 22px;
+  min-height: calc(100vh - 44px);
+}
+
+.authShell.auth-left {
+  grid-template-columns: minmax(380px, 460px) minmax(0, 1fr);
+}
+
+.authShell.auth-left .authCard {
+  order: 1;
+}
+
+.authShell.auth-left .authBrandPanel {
+  order: 2;
+}
+
+.authShell.auth-center {
+  grid-template-columns: 1fr;
+}
+
+.authShell.auth-center .authBrandPanel,
+.authShell.auth-center .authCard {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.authShell.auth-center .authBrandPanel {
+  min-height: inherit;
+}
+
+.authShell.auth-center .authCard {
+  z-index: 3;
+  justify-self: center;
+  width: min(460px, 100%);
+}
+
+.authToolbar {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 8;
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(24px) saturate(160%);
+}
+
+.authPlacementSwitch {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.authPlacementSwitch button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.authPlacementSwitch button.active {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(var(--accent-rgb), 0.16)),
+    rgba(255, 255, 255, 0.54);
+  color: var(--accent);
+  box-shadow: 0 10px 22px rgba(var(--accent-rgb), 0.14);
+}
+
+.authBrandPanel,
+.authCard {
+  position: relative;
+  overflow: hidden;
+}
+
+.authBrandPanel {
+  display: grid;
+  align-content: space-between;
+  min-height: inherit;
+  padding: clamp(26px, 4vw, 48px);
+  border-radius: var(--radius);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.54), transparent 26%),
+    radial-gradient(circle at 76% 74%, rgba(var(--accent-2-rgb), 0.24), transparent 28%),
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.2), rgba(255, 255, 255, 0.18));
+}
+
+.authBrandPanel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(115deg, transparent 22%, rgba(255, 255, 255, 0.18) 45%, transparent 68%),
+    radial-gradient(ellipse at 50% 42%, rgba(var(--accent-rgb), 0.26), transparent 42%);
+  filter: blur(36px);
+  pointer-events: none;
+}
+
+.authBrand,
+.authSlogan,
+.authFeatureGrid {
+  position: relative;
+  z-index: 1;
+}
+
+.authSlogan {
+  max-width: 760px;
+  padding: 9vh 0;
+}
+
+.authSlogan h1 {
+  margin: 20px 0 0;
+  color: var(--ink);
+  font-size: clamp(42px, 6vw, 78px);
+  line-height: 0.98;
+  letter-spacing: 0;
+  text-shadow: var(--text-shadow);
+}
+
+.authSlogan p {
+  max-width: 620px;
+  margin: 22px 0 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.authFeatureGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.authFeatureGrid div {
+  min-height: 118px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.authFeatureGrid svg {
+  color: var(--accent);
+}
+
+.authFeatureGrid strong,
+.authFeatureGrid span {
+  display: block;
+}
+
+.authFeatureGrid strong {
+  margin-top: 12px;
+  color: var(--ink);
+}
+
+.authFeatureGrid span {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.authCard {
+  align-self: center;
+  min-height: 690px;
+  padding: clamp(22px, 3vw, 32px);
+}
+
+.authTitle h2 {
+  margin: 6px 0 0;
+  color: var(--ink);
+  font-size: 34px;
+  letter-spacing: 0;
+}
+
+.authTitle span {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+}
+
+.accountTabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.accountTabs button {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 62px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.44);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.32);
+  color: var(--ink);
+  text-align: left;
+}
+
+.accountTabs button.active {
+  border-color: rgba(var(--accent-rgb), 0.42);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.66), rgba(var(--accent-rgb), 0.13)),
+    rgba(255, 255, 255, 0.46);
+  box-shadow: 0 14px 30px rgba(var(--accent-rgb), 0.13);
+}
+
+.accountTabs span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  font-weight: 900;
+}
+
+.accountTabs strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.authForm {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.authForm > label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.authForm > label > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.38);
+  color: var(--muted);
+}
+
+.authForm input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.captchaBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 50px;
+  border: 1px dashed rgba(var(--accent-rgb), 0.36);
+  border-radius: 17px;
+  background: rgba(var(--accent-rgb), 0.09);
+  color: var(--accent);
+  font-weight: 880;
+}
+
+.captchaBar span {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.captchaBar.done {
+  border-style: solid;
+  background: rgba(22, 165, 111, 0.12);
+  color: #0b8b5a;
+}
+
+.sliderCaptcha {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 54px;
+  padding: 4px;
+  border: 1px solid rgba(var(--accent-rgb), 0.28);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.42), rgba(var(--accent-rgb), 0.08)),
+    rgba(255, 255, 255, 0.32);
+  color: var(--muted);
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+
+.sliderCaptcha.dragging {
+  border-color: rgba(var(--accent-rgb), 0.5);
+}
+
+.sliderCaptcha.done {
+  border-color: rgba(22, 165, 111, 0.42);
+  color: #0b8b5a;
+}
+
+.sliderFill {
+  position: absolute;
+  inset: 4px auto 4px 4px;
+  width: 0;
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.24), rgba(var(--accent-2-rgb), 0.2)),
+    rgba(255, 255, 255, 0.28);
+  transition: width 180ms ease;
+}
+
+.sliderCaptcha.dragging .sliderFill {
+  transition: none;
+}
+
+.sliderText {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 0 56px;
+  font-size: 13px;
+  font-weight: 860;
+  text-align: center;
+  pointer-events: none;
+}
+
+.sliderHandle {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent-deep), var(--accent));
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(var(--accent-rgb), 0.22);
+  transition:
+    left 180ms ease,
+    background 180ms ease;
+  pointer-events: none;
+}
+
+.sliderCaptcha.dragging .sliderHandle {
+  transition: none;
+}
+
+.sliderCaptcha.done .sliderHandle {
+  background: linear-gradient(135deg, #0b8b5a, #28c78d);
+}
+
+.authOptions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.authOptions label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 760;
+}
+
+.authOptions input {
+  width: 16px;
+  accent-color: var(--accent);
+}
+
+.authOptions button {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-weight: 820;
+}
+
+.authError {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(236, 72, 95, 0.12);
+  color: #c9234a;
+  font-size: 13px;
+  font-weight: 760;
+}
+
+.authSubmit {
+  width: 100%;
+  min-height: 52px;
+}
+
+.authAltActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.authAltActions .ghostButton {
+  gap: 8px;
+}
+
 .drawerMask {
   position: fixed;
   inset: 0;
@@ -1244,15 +2045,30 @@ button {
 .mode-dark .navButton:hover,
 .mode-dark .navButton.active,
 .mode-dark .accountCard,
+.mode-dark .authToolbar,
+.mode-dark .authPlacementSwitch,
+.mode-dark .sliderCaptcha,
+.mode-dark .authFeatureGrid div,
+.mode-dark .accountTabs button,
+.mode-dark .authForm > label > div,
 .mode-dark .statCard,
 .mode-dark .todoItem,
 .mode-dark .lessonRow,
+.mode-dark .scheduleRow,
+.mode-dark .businessCard,
+.mode-dark .studentCard,
+.mode-dark .reviewRow,
+.mode-dark .recordCard,
+.mode-dark .timelineItem,
+.mode-dark .fieldsTable div,
+.mode-dark .permissionMatrix div,
 .mode-dark .segmented,
 .mode-dark .themePreset,
 .mode-dark .layoutPreset,
 .mode-dark .switchRows button,
 .mode-dark .searchBox,
-.mode-dark .iconButton {
+.mode-dark .iconButton,
+.mode-dark .ghostButton {
   background: rgba(255, 255, 255, 0.11);
 }
 
@@ -1264,6 +2080,21 @@ button {
 .mode-dark .todoItem small,
 .mode-dark .lessonRow small,
 .mode-dark .moduleHero span,
+.mode-dark .moduleTitle span,
+.mode-dark .businessCard span,
+.mode-dark .studentCard span,
+.mode-dark .questionCard span,
+.mode-dark .recordCard span,
+.mode-dark .timelineItem span,
+.mode-dark .fieldsTable span,
+.mode-dark .permissionMatrix span,
+.mode-dark .pipelineColumn > span,
+.mode-dark .scheduleRow span,
+.mode-dark .authSlogan p,
+.mode-dark .authFeatureGrid span,
+.mode-dark .authTitle span,
+.mode-dark .authForm > label,
+.mode-dark .authOptions label,
 .mode-dark .layoutPreset small,
 .mode-dark .settingGroup label,
 .mode-dark .overline,
@@ -1278,6 +2109,8 @@ button {
 .mode-dark .navButton,
 .mode-dark .todoItem,
 .mode-dark .lessonRow,
+.mode-dark .scheduleRow,
+.mode-dark .ghostButton,
 .mode-dark .themePreset,
 .mode-dark .layoutPreset,
 .mode-dark .switchRows button,
@@ -1288,6 +2121,24 @@ button {
 .mode-dark .navButton span,
 .mode-dark .todoItem strong,
 .mode-dark .lessonRow strong,
+.mode-dark .scheduleRow strong,
+.mode-dark .businessCard strong,
+.mode-dark .studentCard strong,
+.mode-dark .reviewRow strong,
+.mode-dark .recordCard strong,
+.mode-dark .timelineItem strong,
+.mode-dark .fieldsTable strong,
+.mode-dark .permissionMatrix strong,
+.mode-dark .moduleTitle h2,
+.mode-dark .authSlogan h1,
+.mode-dark .authFeatureGrid strong,
+.mode-dark .authTitle h2,
+.mode-dark .accountTabs strong,
+.mode-dark .insightPanel h3,
+.mode-dark .pipelineColumn h3,
+.mode-dark .questionCard h3,
+.mode-dark .financeCard h3,
+.mode-dark .financeCard strong,
 .mode-dark .statCard strong {
   color: #fff;
 }
@@ -1296,11 +2147,42 @@ button {
 .mode-dark .navButton em,
 .mode-dark .todoItem > span,
 .mode-dark .lessonRow em,
-.mode-dark .chip {
+.mode-dark .chip,
+.mode-dark .statusTag {
   color: #fff;
   background:
     linear-gradient(135deg, rgba(var(--accent-rgb), 0.5), rgba(var(--accent-2-rgb), 0.24)),
     rgba(255, 255, 255, 0.08);
+}
+
+.mode-dark .authBrandPanel {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.08), transparent 26%),
+    radial-gradient(circle at 76% 74%, rgba(var(--accent-2-rgb), 0.16), transparent 28%),
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.14), rgba(8, 13, 28, 0.72));
+}
+
+.mode-dark .accountTabs button.active {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(var(--accent-rgb), 0.16)),
+    rgba(255, 255, 255, 0.1);
+}
+
+.mode-dark .captchaBar.done {
+  color: #fff;
+  background: rgba(22, 165, 111, 0.22);
+}
+
+.mode-dark .authPlacementSwitch button.active {
+  color: #fff;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.48), rgba(var(--accent-2-rgb), 0.22)),
+    rgba(255, 255, 255, 0.08);
+}
+
+.mode-dark .sliderCaptcha.done {
+  color: #fff;
+  background: rgba(22, 165, 111, 0.18);
 }
 
 .mode-dark .heroPanel:hover,
@@ -1741,15 +2623,30 @@ button {
   .mode-auto .navButton:hover,
   .mode-auto .navButton.active,
   .mode-auto .accountCard,
+  .mode-auto .authToolbar,
+  .mode-auto .authPlacementSwitch,
+  .mode-auto .sliderCaptcha,
+  .mode-auto .authFeatureGrid div,
+  .mode-auto .accountTabs button,
+  .mode-auto .authForm > label > div,
   .mode-auto .statCard,
   .mode-auto .todoItem,
   .mode-auto .lessonRow,
+  .mode-auto .scheduleRow,
+  .mode-auto .businessCard,
+  .mode-auto .studentCard,
+  .mode-auto .reviewRow,
+  .mode-auto .recordCard,
+  .mode-auto .timelineItem,
+  .mode-auto .fieldsTable div,
+  .mode-auto .permissionMatrix div,
   .mode-auto .segmented,
   .mode-auto .themePreset,
   .mode-auto .layoutPreset,
   .mode-auto .switchRows button,
   .mode-auto .searchBox,
-  .mode-auto .iconButton {
+  .mode-auto .iconButton,
+  .mode-auto .ghostButton {
     background: rgba(255, 255, 255, 0.08);
   }
 
@@ -1806,6 +2703,34 @@ button {
   .homeGrid {
     grid-template-columns: 1fr;
   }
+
+  .scheduleGrid,
+  .twoColumns,
+  .threeColumns,
+  .pipelineGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .studentGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .authShell {
+    grid-template-columns: 1fr;
+  }
+
+  .authBrandPanel {
+    min-height: auto;
+  }
+
+  .authSlogan {
+    padding: 90px 0 32px;
+  }
+
+  .authCard {
+    align-self: stretch;
+    min-height: auto;
+  }
 }
 
 @media (max-width: 760px) {
@@ -1855,6 +2780,73 @@ button {
   }
 
   .lessonRow {
+    grid-template-columns: 1fr;
+  }
+
+  .moduleHeader,
+  .moduleTitle,
+  .moduleToolbar,
+  .boardHeader {
+    align-items: stretch;
+  }
+
+  .moduleHeader,
+  .moduleTitle,
+  .boardHeader {
+    display: grid;
+  }
+
+  .moduleToolbar {
+    justify-content: flex-start;
+  }
+
+  .moduleToolbar .blackButton,
+  .moduleToolbar .ghostButton {
+    flex: 1 1 120px;
+  }
+
+  .scheduleRow,
+  .reviewRow,
+  .recordCard,
+  .fieldsTable div,
+  .permissionMatrix div,
+  .timelineItem {
+    grid-template-columns: 1fr;
+  }
+
+  .studentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .segmented.small {
+    width: 100%;
+  }
+
+  .authShell {
+    min-height: calc(100vh - 24px);
+    gap: 12px;
+  }
+
+  .authToolbar {
+    top: 12px;
+    right: 12px;
+  }
+
+  .authBrandPanel {
+    padding: 18px;
+  }
+
+  .authSlogan {
+    padding: 86px 0 16px;
+  }
+
+  .authSlogan h1 {
+    font-size: clamp(34px, 12vw, 48px);
+  }
+
+  .authFeatureGrid,
+  .accountTabs,
+  .authAltActions {
     grid-template-columns: 1fr;
   }
 }
