@@ -1,0 +1,17 @@
+<view class="page">
+  <view class="section">
+    <text class="eyebrow">Homework</text>
+    <text class="title">我的作业</text>
+    <text class="muted">只展示老师授权给你或同节课同学的作业。</text>
+  </view>
+
+  <block wx:for="{{tasks}}" wx:key="title">
+    <view class="taskCard">
+      <view>
+        <text class="taskTitle">{{item.title}}</text>
+        <text class="muted">截止：{{item.deadline}}</text>
+      </view>
+      <text class="pill">{{item.status}}</text>
+    </view>
+  </block>
+</view>

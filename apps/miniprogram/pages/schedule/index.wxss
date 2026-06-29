@@ -1,0 +1,14 @@
+.courseCard {
+  display: grid;
+  gap: 14rpx;
+  margin-bottom: 20rpx;
+  padding: 28rpx;
+  border-radius: 16rpx;
+  background: #ffffff;
+  box-shadow: 0 16rpx 50rpx rgba(34, 48, 55, 0.08);
+}
+
+.courseName {
+  font-size: 34rpx;
+  font-weight: 900;
+}

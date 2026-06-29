@@ -1,0 +1,19 @@
+<view class="page">
+  <view class="profile">
+    <view class="avatar">{{user.initial}}</view>
+    <text class="title">{{user.name}}</text>
+    <text class="muted">{{user.role}} · 家长{{user.parentBound ? '已绑定' : '未绑定'}}</text>
+  </view>
+
+  <view class="section">
+    <text class="eyebrow">Billing</text>
+    <view class="walletRow">
+      <text>剩余课时</text>
+      <text>{{wallet.remainingHours}}</text>
+    </view>
+    <view class="walletRow">
+      <text>待确认账单</text>
+      <text>{{wallet.pendingBill}}</text>
+    </view>
+  </view>
+</view>

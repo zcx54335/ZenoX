@@ -1,0 +1,31 @@
+<view class="page">
+  <view class="hero">
+    <text class="eyebrow">Today</text>
+    <text class="title">今天有 {{lessons.length}} 节课</text>
+    <text class="muted">课程、作业、课时确认都会同步到这里。</text>
+  </view>
+
+  <view class="quickGrid">
+    <view class="quickCard">
+      <text class="muted">待交作业</text>
+      <text class="quickNumber">{{homeworkCount}}</text>
+    </view>
+    <view class="quickCard">
+      <text class="muted">待确认账单</text>
+      <text class="quickNumber">{{billingAmount}}</text>
+    </view>
+  </view>
+
+  <view class="section">
+    <text class="eyebrow">Schedule</text>
+    <block wx:for="{{lessons}}" wx:key="title">
+      <view class="lessonRow">
+        <text class="lessonTime">{{item.time}}</text>
+        <view>
+          <text class="lessonTitle">{{item.title}}</text>
+          <text class="muted">{{item.status}}</text>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

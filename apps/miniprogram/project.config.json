@@ -1,0 +1,14 @@
+{
+  "description": "微拟课管家微信小程序端",
+  "appid": "touristappid",
+  "projectname": "weini-tutor-miniprogram",
+  "miniprogramRoot": "./",
+  "compileType": "miniprogram",
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "postcss": true,
+    "minified": true,
+    "enhance": true
+  }
+}

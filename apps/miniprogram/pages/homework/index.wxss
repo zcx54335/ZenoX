@@ -1,0 +1,18 @@
+.taskCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+  padding: 28rpx;
+  border-radius: 16rpx;
+  background: #ffffff;
+  box-shadow: 0 16rpx 50rpx rgba(34, 48, 55, 0.08);
+}
+
+.taskTitle {
+  display: block;
+  margin-bottom: 8rpx;
+  font-size: 32rpx;
+  font-weight: 900;
+}

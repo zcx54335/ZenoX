@@ -1,0 +1,40 @@
+{
+  "pages": [
+    "pages/dashboard/index",
+    "pages/schedule/index",
+    "pages/homework/index",
+    "pages/mine/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "微拟课管家",
+    "navigationBarBackgroundColor": "#101719",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#eef2f1"
+  },
+  "tabBar": {
+    "color": "#748188",
+    "selectedColor": "#0b7663",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/dashboard/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/schedule/index",
+        "text": "课程"
+      },
+      {
+        "pagePath": "pages/homework/index",
+        "text": "作业"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
