@@ -26,7 +26,7 @@ public class JwtTokenService {
     Instant now = Instant.now();
     return Jwts.builder()
         .subject(String.valueOf(userId))
-        .claim("tenantId", tenantId)
+        .claim("tenantId", String.valueOf(tenantId))
         .claim("username", username)
         .claim("role", role.name())
         .issuedAt(Date.from(now))

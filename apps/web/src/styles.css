@@ -1182,8 +1182,47 @@ button {
   margin-top: 18px;
 }
 
+.exportPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px auto;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.exportPanel strong {
+  display: block;
+  color: var(--ink);
+  font-size: 18px;
+}
+
+.exportPanel span {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.exportPanel input {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.54);
+  border-radius: 14px;
+  outline: 0;
+  background: rgba(255, 255, 255, 0.38);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 780;
+}
+
 .scheduleGrid {
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.34fr);
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.42fr);
+}
+
+.scheduleBoard {
+  grid-row: span 2;
 }
 
 .twoColumns {
@@ -1209,6 +1248,62 @@ button {
 .boardHeader strong {
   color: var(--ink);
   font-size: 19px;
+}
+
+.datePicker,
+.lessonComposer input,
+.lessonComposer select {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.54);
+  border-radius: 14px;
+  outline: 0;
+  background: rgba(255, 255, 255, 0.38);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 760;
+}
+
+.datePicker {
+  max-width: 168px;
+  padding: 0 12px;
+}
+
+.weekStrip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.weekStrip button {
+  display: grid;
+  gap: 4px;
+  min-height: 58px;
+  padding: 8px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.46);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.3);
+  color: var(--muted);
+  text-align: center;
+}
+
+.weekStrip button.active {
+  border-color: rgba(var(--accent-rgb), 0.44);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.68), rgba(var(--accent-rgb), 0.16)),
+    rgba(255, 255, 255, 0.42);
+  color: var(--accent);
+}
+
+.weekStrip span {
+  font-size: 12px;
+  font-weight: 820;
+}
+
+.weekStrip strong {
+  color: inherit;
+  font-size: 13px;
 }
 
 .segmented.small {
@@ -1246,6 +1341,13 @@ button {
   font-weight: 900;
 }
 
+.scheduleRow time small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .scheduleRow strong,
 .businessCard strong,
 .studentCard strong,
@@ -1269,6 +1371,72 @@ button {
 .scheduleRow span {
   display: block;
   margin-top: 6px;
+}
+
+.lessonActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lessonActions .ghostButton {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.ghostButton.danger {
+  color: #c2410c;
+}
+
+.ghostButton:disabled,
+.blackButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.lessonComposer h3 {
+  margin: 8px 0 16px;
+  color: var(--ink);
+  font-size: 22px;
+}
+
+.lessonComposer form {
+  display: grid;
+  gap: 13px;
+}
+
+.lessonComposer label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.lessonComposer input,
+.lessonComposer select {
+  padding: 0 12px;
+}
+
+.formPair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.scheduleMessage {
+  padding: 10px 12px;
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
+  border-radius: 14px;
+  background: rgba(var(--accent-rgb), 0.08);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.5;
 }
 
 .statusTag {
@@ -1373,6 +1541,20 @@ button {
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 24px;
+}
+
+.dataState {
+  display: grid;
+  min-height: 88px;
+  place-items: center;
+  padding: 18px;
+  border: 1px dashed rgba(var(--accent-rgb), 0.28);
+  border-radius: 18px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.26);
 }
 
 .reviewList {
@@ -1655,6 +1837,19 @@ button {
   display: block;
   margin-top: 8px;
   color: var(--muted);
+}
+
+.authTitle small {
+  display: block;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(var(--accent-rgb), 0.16);
+  border-radius: 14px;
+  background: rgba(var(--accent-rgb), 0.08);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.5;
 }
 
 .accountTabs {
@@ -2611,6 +2806,12 @@ button {
 .mode-dark .authFeatureGrid div,
 .mode-dark .accountTabs button,
 .mode-dark .authForm > label > div,
+.mode-dark .datePicker,
+.mode-dark .exportPanel input,
+.mode-dark .lessonComposer input,
+.mode-dark .lessonComposer select,
+.mode-dark .scheduleMessage,
+.mode-dark .weekStrip button,
 .mode-dark .statCard,
 .mode-dark .todoItem,
 .mode-dark .lessonRow,
@@ -2655,6 +2856,8 @@ button {
 .mode-dark .authSlogan p,
 .mode-dark .authFeatureGrid span,
 .mode-dark .authTitle span,
+.mode-dark .authTitle small,
+.mode-dark .lessonComposer label,
 .mode-dark .authForm > label,
 .mode-dark .authOptions label,
 .mode-dark .layoutPreset small,
@@ -2673,6 +2876,10 @@ button {
 .mode-dark .lessonRow,
 .mode-dark .scheduleRow,
 .mode-dark .ghostButton,
+.mode-dark .datePicker,
+.mode-dark .exportPanel input,
+.mode-dark .lessonComposer input,
+.mode-dark .lessonComposer select,
 .mode-dark .themePreset,
 .mode-dark .effectPreset,
 .mode-dark .detailPreset,
@@ -2701,6 +2908,8 @@ button {
 .mode-dark .effectPreset strong,
 .mode-dark .detailPreset strong,
 .mode-dark .insightPanel h3,
+.mode-dark .lessonComposer h3,
+.mode-dark .exportPanel strong,
 .mode-dark .pipelineColumn h3,
 .mode-dark .questionCard h3,
 .mode-dark .financeCard h3,
@@ -3306,6 +3515,10 @@ button {
   .twoColumns,
   .threeColumns,
   .pipelineGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .exportPanel {
     grid-template-columns: 1fr;
   }
 

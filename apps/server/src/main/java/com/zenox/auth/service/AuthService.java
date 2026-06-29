@@ -1,8 +1,8 @@
 package com.zenox.auth.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zenox.auth.dto.LoginRequest;
 import com.zenox.auth.dto.LoginResponse;
+import com.zenox.auth.mapper.RolePermissionMapper;
 import com.zenox.auth.security.JwtTokenService;
 import com.zenox.common.enums.UserStatus;
 import com.zenox.common.error.BusinessException;
@@ -18,23 +18,24 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
   private final JwtTokenService jwtTokenService;
   private final PasswordEncoder passwordEncoder;
+  private final RolePermissionMapper rolePermissionMapper;
   private final UserAccountMapper userAccountMapper;
 
   public AuthService(
       JwtTokenService jwtTokenService,
       PasswordEncoder passwordEncoder,
+      RolePermissionMapper rolePermissionMapper,
       UserAccountMapper userAccountMapper
   ) {
     this.jwtTokenService = jwtTokenService;
     this.passwordEncoder = passwordEncoder;
+    this.rolePermissionMapper = rolePermissionMapper;
     this.userAccountMapper = userAccountMapper;
   }
 
   @Transactional
   public LoginResponse login(LoginRequest request) {
-    UserAccount user = userAccountMapper.selectOne(new LambdaQueryWrapper<UserAccount>()
-        .eq(UserAccount::getUsername, request.username())
-        .isNull(UserAccount::getDeletedAt));
+    UserAccount user = userAccountMapper.findByUsername(request.username());
     if (user == null || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
       throw new BusinessException(ErrorCode.UNAUTHORIZED, "Invalid username or password");
     }
@@ -47,10 +48,12 @@ public class AuthService {
 
     String accessToken = jwtTokenService.createAccessToken(user.getId(), user.getTenantId(), user.getUsername(), user.getRole());
     String refreshToken = jwtTokenService.createRefreshToken(user.getId());
+    var accessCodes = rolePermissionMapper.listPermissionCodes(user.getTenantId(), user.getRole());
 
     return new LoginResponse(
         accessToken,
         refreshToken,
+        accessCodes,
         new LoginResponse.UserSession(user.getId(), user.getTenantId(), user.getUsername(), user.getDisplayName(), user.getRole())
     );
   }
