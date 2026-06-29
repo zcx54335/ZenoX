@@ -118,7 +118,7 @@ apps/web/src/styles.css
 Implemented in the current prototype:
 
 - ZenoX workspace shell.
-- Login-state-based role simulation with admin permissions.
+- Real login against the Spring Boot backend; role and module visibility come from backend `accessCodes`.
 - Sidebar navigation with grouped modules.
 - Collapsible sidebar groups.
 - Dashboard showing only workspace summary, todos, and today's lessons.
@@ -150,6 +150,48 @@ Recent UI fixes:
 - Sidebar feature item fonts were reduced.
 - Card hover motion was softened.
 
+## Latest Implementation State - 2026-06-30
+
+The project has moved beyond UI prototype work. It now has a running Spring Boot backend and the web app is partially connected to real backend data.
+
+Important current facts:
+
+- Backend lives in `apps/server`.
+- Web app still lives mainly in `apps/web/src/App.tsx` and `apps/web/src/styles.css`; this file is now large and should be split soon.
+- Login is real: the frontend posts to `POST /api/auth/login`.
+- The login page no longer lets users choose a role. Users enter an account; backend resolves role and permissions from MySQL.
+- Demo accounts:
+  - `zcx / 123456`: tenant owner / admin, all permissions.
+  - `teacher / 123456`: teacher, teaching and operational permissions, no system admin.
+  - `student / 123456`: student, no dashboard, no schedule, no class roster.
+  - `parent / 123456`: parent, no dashboard, no schedule, no class roster.
+- Sidebar visibility is controlled by backend `accessCodes` returned from login, not hardcoded frontend role switching.
+- `role_permission` stores role-to-permission mappings.
+- `V5__tighten_role_permissions.sql` tightened student/parent visibility after user feedback.
+- `班级学员`, `日历排课`, and `作业中心` have been connected to real backend APIs.
+
+Current schedule feature:
+
+- Teachers/admins can view lessons in the schedule page.
+- The schedule page has week-day switching, a selected-day lesson list, a create lesson form, quick delay by 30 minutes, and cancel lesson action.
+- Backend checks schedule conflicts:
+  - teacher time conflict.
+  - class/group time conflict.
+  - same student across different classes/groups at the same time.
+- Schedule export is real: `GET /api/lessons/export?month=YYYY-MM` returns an `.xlsx` file.
+- Frontend `导出 Excel` opens a month picker and downloads `ZenoX-课程记录-YYYY-MM.xlsx`.
+- The export includes date, start/end time, class/group, student count, subject, topic, hours, unit price, amount, delivery mode, and status.
+
+Recent backend verification:
+
+```text
+mvn test
+npm run lint -w apps/web
+npm run build -w apps/web
+```
+
+These passed after the schedule export work.
+
 ## Current Project Structure
 
 ```text
@@ -159,6 +201,7 @@ Recent UI fixes:
 │  ├─ ARCHITECTURE.md
 │  └─ CODEX_CONTEXT.md
 ├─ apps
+│  ├─ server
 │  ├─ web
 │  └─ miniprogram
 ├─ package.json
@@ -221,20 +264,38 @@ npm install
 npm run dev -w apps/web
 ```
 
-## Backend Direction
+## Backend State
 
-Backend is not implemented yet.
+Backend has been scaffolded and partially implemented.
 
-Confirmed direction:
+Confirmed stack:
 
 - Java 21.
 - Spring Boot 3.
 - MySQL 8.
+- Maven.
+- Flyway.
+- MyBatis Plus.
+- JWT auth.
+- Apache POI for Excel export.
 - Redis later.
 - Object storage for homework files and teaching materials.
 - WeChat mini program subscription messages for reminders.
 - Start as modular monolith, not microservices.
 - Use `tenant_id` for SaaS multi-tenant isolation.
+
+Implemented backend areas:
+
+- Auth: username/password login, JWT, role and permission return.
+- Tenant isolation: JWT carries `tenantId` as a string to avoid large-number precision loss.
+- Users/classes/students/homework: initial CRUD/list endpoints.
+- Lessons: list, create, reschedule, cancel, conflict checks, Excel export.
+- Flyway migrations:
+  - `V1__init_core_schema.sql`
+  - `V2__seed_demo_owner.sql`
+  - `V3__seed_demo_workspace.sql`
+  - `V4__role_permissions.sql`
+  - `V5__tighten_role_permissions.sql`
 
 See:
 
@@ -246,26 +307,30 @@ docs/ARCHITECTURE.md
 
 Recommended next steps:
 
-1. Keep polishing Web workspace UI until the user is satisfied.
-2. Split `App.tsx` into components:
+1. Split `App.tsx` into components soon:
    - shell/layout.
    - sidebar.
    - topbar.
    - dashboard.
    - theme drawer.
-   - module placeholder.
-3. Add real pages for:
-   - schedule calendar.
-   - classes/students.
-   - homework center.
+   - login view.
+   - schedule page.
+   - classes/students page.
+   - homework page.
+2. Continue turning mock pages into real data pages:
    - homework review.
    - forum/question bank.
    - class records.
    - billing/monthly PDF.
    - custom fields.
-4. Add mock data layer before backend.
-5. Design backend database schema and Java modules.
-6. Add login and role-based navigation rules.
+3. Improve schedule feature:
+   - add true month/week calendar visualization.
+   - add edit form instead of only "delay 30 minutes".
+   - add lesson detail drawer.
+   - add permission checks on backend endpoints, not only frontend navigation.
+4. Add real class member management so teachers can assign students to classes from the UI.
+5. Implement homework publish/visibility/submission/review workflow.
+6. Add billing monthly cycle generation from completed lessons and payment records.
 
 ## How To Resume With Codex On Another Computer
 
