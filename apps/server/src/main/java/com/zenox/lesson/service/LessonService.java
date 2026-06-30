@@ -1,10 +1,12 @@
 package com.zenox.lesson.service;
 
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.zenox.common.enums.LessonStatus;
 import com.zenox.common.error.BusinessException;
 import com.zenox.common.error.ErrorCode;
 import com.zenox.common.security.CurrentUser;
 import com.zenox.lesson.dto.CreateLessonRequest;
+import com.zenox.lesson.dto.LessonBillingMember;
 import com.zenox.lesson.dto.LessonScheduleItem;
 import com.zenox.lesson.dto.RescheduleLessonRequest;
 import com.zenox.lesson.entity.Lesson;
@@ -39,11 +41,18 @@ public class LessonService {
   }
 
   public byte[] exportMonthlyLessons(YearMonth month) {
-    var startsAt = month.atDay(1).atStartOfDay();
-    var endsAt = month.plusMonths(1).atDay(1).atStartOfDay();
+    return exportLessons(month.atDay(1), month.atEndOfMonth());
+  }
+
+  public byte[] exportLessons(LocalDate startDate, LocalDate endDate) {
+    if (endDate.isBefore(startDate)) {
+      throw new BusinessException(ErrorCode.BAD_REQUEST, "Export end date cannot be before start date");
+    }
+    var startsAt = startDate.atStartOfDay();
+    var endsAt = endDate.plusDays(1).atStartOfDay();
     List<LessonScheduleItem> lessons = lessonMapper.listScheduleByTenantIdAndRange(currentUser.tenantId(), startsAt, endsAt);
     try (var workbook = new XSSFWorkbook(); var output = new ByteArrayOutputStream()) {
-      var sheet = workbook.createSheet(month + " 课程记录");
+      var sheet = workbook.createSheet("课程记录");
       CellStyle headerStyle = workbook.createCellStyle();
       Font headerFont = workbook.createFont();
       headerFont.setBold(true);
@@ -145,6 +154,87 @@ public class LessonService {
     lesson.setStatus(LessonStatus.CANCELLED);
     lessonMapper.updateById(lesson);
     return lesson;
+  }
+
+  @Transactional
+  public Lesson complete(Long id) {
+    Long tenantId = currentUser.tenantId();
+    Lesson lesson = lessonMapper.findByIdAndTenantId(id, tenantId);
+    if (lesson == null) {
+      throw new BusinessException(ErrorCode.NOT_FOUND, "Lesson not found");
+    }
+    if (lesson.getStatus() == LessonStatus.CANCELLED) {
+      throw new BusinessException(ErrorCode.BAD_REQUEST, "Cancelled lessons cannot be completed");
+    }
+    if (lesson.getStatus() != LessonStatus.COMPLETED) {
+      lessonMapper.reactivateAttendanceForClassMembers(id, tenantId);
+      lessonMapper.insertAttendanceForClassMembers(id, tenantId);
+      lessonMapper.deductRemainingLessonsForClassMembers(id, tenantId);
+      syncBillingForCompletedLesson(tenantId, id);
+      lesson.setStatus(LessonStatus.COMPLETED);
+      lessonMapper.updateById(lesson);
+    }
+    return lessonMapper.findByIdAndTenantId(id, tenantId);
+  }
+
+  @Transactional
+  public Lesson undoComplete(Long id) {
+    Long tenantId = currentUser.tenantId();
+    Lesson lesson = lessonMapper.findByIdAndTenantId(id, tenantId);
+    if (lesson == null) {
+      throw new BusinessException(ErrorCode.NOT_FOUND, "Lesson not found");
+    }
+    if (lesson.getStatus() != LessonStatus.COMPLETED) {
+      throw new BusinessException(ErrorCode.BAD_REQUEST, "Only completed lessons can be undone");
+    }
+    List<Long> affectedBillingCycleIds = lessonMapper.listBillingCycleIdsByLesson(tenantId, id);
+    lessonMapper.restoreRemainingLessonsForAttendanceStudents(id, tenantId);
+    lessonMapper.softDeleteAttendanceByLesson(id, tenantId);
+    lessonMapper.softDeleteBillingItemsByLesson(tenantId, id);
+    for (Long billingCycleId : affectedBillingCycleIds) {
+      lessonMapper.recalculateBillingCycle(tenantId, billingCycleId);
+    }
+    lesson.setStatus(LessonStatus.SCHEDULED);
+    lessonMapper.updateById(lesson);
+    return lessonMapper.findByIdAndTenantId(id, tenantId);
+  }
+
+  private void syncBillingForCompletedLesson(Long tenantId, Long lessonId) {
+    List<LessonBillingMember> billingMembers = lessonMapper.listBillingMembersForLesson(lessonId, tenantId);
+    for (LessonBillingMember member : billingMembers) {
+      LocalDate cycleMonth = YearMonth.from(member.startsAt()).atDay(1);
+      Long billingCycleId = lessonMapper.findBillingCycleId(tenantId, member.studentId(), cycleMonth);
+      if (billingCycleId == null) {
+        billingCycleId = IdWorker.getId();
+        lessonMapper.insertBillingCycle(billingCycleId, tenantId, member.studentId(), cycleMonth);
+      }
+      Long existingItemId = lessonMapper.findActiveBillingItemId(tenantId, billingCycleId, lessonId);
+      if (existingItemId == null) {
+        BigDecimal hours = member.lessonHours() == null ? BigDecimal.ZERO : member.lessonHours();
+        BigDecimal unitPrice = member.unitPrice() == null ? BigDecimal.ZERO : member.unitPrice();
+        BigDecimal amount = hours.multiply(unitPrice).setScale(2, RoundingMode.HALF_UP);
+        lessonMapper.insertBillingItem(
+            IdWorker.getId(),
+            tenantId,
+            billingCycleId,
+            lessonId,
+            billingItemTitle(member, hours),
+            amount
+        );
+      }
+      lessonMapper.recalculateBillingCycle(tenantId, billingCycleId);
+    }
+  }
+
+  private String billingItemTitle(LessonBillingMember member, BigDecimal hours) {
+    String className = member.classGroupName() == null || member.classGroupName().isBlank()
+        ? "未绑定班级"
+        : member.classGroupName();
+    String topic = member.topic() == null || member.topic().isBlank()
+        ? (member.subject() == null || member.subject().isBlank() ? "课程" : member.subject())
+        : member.topic();
+    String time = member.startsAt().format(DateTimeFormatter.ofPattern("MM/dd HH:mm"));
+    return className + " · " + topic + " · " + hours.stripTrailingZeros().toPlainString() + " 课时 · " + time;
   }
 
   private void ensureNoConflicts(

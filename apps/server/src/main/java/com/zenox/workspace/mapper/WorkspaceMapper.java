@@ -1,0 +1,361 @@
+package com.zenox.workspace.mapper;
+
+import com.zenox.workspace.dto.BillingSummary;
+import com.zenox.workspace.dto.ClassGroupSummary;
+import com.zenox.workspace.dto.ClassRecordSummary;
+import com.zenox.workspace.dto.HomeworkSummary;
+import com.zenox.workspace.dto.QuestionSummary;
+import com.zenox.workspace.dto.ReminderSummary;
+import com.zenox.workspace.dto.ReviewSummary;
+import com.zenox.workspace.dto.StudentSummary;
+import com.zenox.workspace.dto.TodoSummary;
+import java.util.List;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
+
+@Mapper
+public interface WorkspaceMapper {
+  @Select("""
+      SELECT
+        cg.id,
+        cg.name,
+        cg.subject,
+        cg.grade,
+        cg.description,
+        COUNT(DISTINCT cm.student_id) AS studentCount,
+        GROUP_CONCAT(DISTINCT ua.display_name ORDER BY ua.display_name SEPARATOR '、') AS teacherNames
+      FROM class_group cg
+      LEFT JOIN class_member cm
+        ON cm.class_group_id = cg.id
+       AND cm.deleted_at IS NULL
+      LEFT JOIN class_teacher ct
+        ON ct.class_group_id = cg.id
+       AND ct.deleted_at IS NULL
+      LEFT JOIN user_account ua
+        ON ua.id = ct.teacher_user_id
+       AND ua.deleted_at IS NULL
+      WHERE cg.tenant_id = #{tenantId}
+        AND cg.deleted_at IS NULL
+      GROUP BY cg.id, cg.name, cg.subject, cg.grade, cg.description
+      ORDER BY cg.created_at DESC
+      """)
+  List<ClassGroupSummary> listClasses(Long tenantId);
+
+  @Select("""
+      SELECT
+        sp.id,
+        sp.name,
+        sp.grade,
+        sp.school,
+        sp.subject,
+        sp.parent_name AS parentName,
+        sp.parent_phone AS parentPhone,
+        sp.remaining_lessons AS remainingLessons,
+        sp.weakness_note AS weaknessNote,
+        GROUP_CONCAT(DISTINCT cg.name ORDER BY cg.name SEPARATOR '、') AS classNames
+      FROM student_profile sp
+      LEFT JOIN class_member cm
+        ON cm.student_id = sp.id
+       AND cm.deleted_at IS NULL
+      LEFT JOIN class_group cg
+        ON cg.id = cm.class_group_id
+       AND cg.deleted_at IS NULL
+      WHERE sp.tenant_id = #{tenantId}
+        AND sp.deleted_at IS NULL
+      GROUP BY
+        sp.id,
+        sp.name,
+        sp.grade,
+        sp.school,
+        sp.subject,
+        sp.parent_name,
+        sp.parent_phone,
+        sp.remaining_lessons,
+        sp.weakness_note
+      ORDER BY sp.created_at DESC
+      """)
+  List<StudentSummary> listStudents(Long tenantId);
+
+  @Select("""
+      SELECT
+        h.id,
+        h.lesson_id AS lessonId,
+        hv.target_id AS studentId,
+        sp.name AS studentName,
+        cg.name AS classGroupName,
+        h.title,
+        h.content,
+        h.due_at AS dueAt,
+        h.status,
+        COUNT(DISTINCT hs.id) AS submissionCount,
+        COUNT(DISTINCT hr.id) AS reviewCount,
+        COUNT(DISTINCT fa.id) AS attachmentCount
+      FROM homework h
+      JOIN homework_visibility hv
+        ON hv.homework_id = h.id
+       AND hv.target_type = 'STUDENT'
+       AND hv.deleted_at IS NULL
+      JOIN student_profile sp
+        ON sp.id = hv.target_id
+       AND sp.deleted_at IS NULL
+      LEFT JOIN lesson l
+        ON l.id = h.lesson_id
+       AND l.deleted_at IS NULL
+      LEFT JOIN class_group cg
+        ON cg.id = l.class_group_id
+       AND cg.deleted_at IS NULL
+      LEFT JOIN homework_submission hs
+        ON hs.homework_id = h.id
+       AND hs.student_id = sp.id
+       AND hs.deleted_at IS NULL
+      LEFT JOIN homework_review hr
+        ON hr.submission_id = hs.id
+       AND hr.deleted_at IS NULL
+      LEFT JOIN file_attachment fa
+        ON fa.owner_type = 'HOMEWORK'
+       AND fa.owner_id = h.id
+       AND fa.deleted_at IS NULL
+      WHERE h.tenant_id = #{tenantId}
+        AND h.deleted_at IS NULL
+      GROUP BY
+        h.id,
+        h.lesson_id,
+        hv.target_id,
+        sp.name,
+        cg.name,
+        h.title,
+        h.content,
+        h.due_at,
+        h.status
+      ORDER BY h.due_at ASC, h.created_at DESC
+      """)
+  List<HomeworkSummary> listHomework(Long tenantId);
+
+  @Select("""
+      SELECT
+        hs.id AS submissionId,
+        h.id AS homeworkId,
+        sp.id AS studentId,
+        sp.name AS studentName,
+        h.title AS homeworkTitle,
+        hs.status,
+        hr.mistake_tags AS mistakeTags,
+        hr.comment,
+        hr.score,
+        hs.submitted_at AS submittedAt,
+        hr.reviewed_at AS reviewedAt
+      FROM homework_submission hs
+      JOIN homework h
+        ON h.id = hs.homework_id
+       AND h.deleted_at IS NULL
+      JOIN student_profile sp
+        ON sp.id = hs.student_id
+       AND sp.deleted_at IS NULL
+      LEFT JOIN homework_review hr
+        ON hr.submission_id = hs.id
+       AND hr.deleted_at IS NULL
+      WHERE hs.tenant_id = #{tenantId}
+        AND hs.deleted_at IS NULL
+      ORDER BY COALESCE(hs.submitted_at, hs.created_at) DESC
+      """)
+  List<ReviewSummary> listReviews(Long tenantId);
+
+  @Select("""
+      SELECT
+        q.id,
+        q.title,
+        q.subject,
+        q.grade,
+        q.knowledge_point AS knowledgePoint,
+        q.difficulty,
+        q.scope,
+        ua.display_name AS creatorName,
+        COUNT(DISTINCT CASE WHEN qi.interaction_type = 'LIKE' THEN qi.id END) AS likeCount,
+        COUNT(DISTINCT CASE WHEN qi.interaction_type = 'FAVORITE' THEN qi.id END) AS favoriteCount,
+        COUNT(DISTINCT CASE WHEN qi.interaction_type = 'COMMENT' THEN qi.id END) AS commentCount,
+        COUNT(DISTINCT fa.id) AS attachmentCount
+      FROM question q
+      JOIN user_account ua
+        ON ua.id = q.creator_user_id
+       AND ua.deleted_at IS NULL
+      LEFT JOIN question_interaction qi
+        ON qi.question_id = q.id
+       AND qi.deleted_at IS NULL
+      LEFT JOIN file_attachment fa
+        ON fa.owner_type = 'QUESTION'
+       AND fa.owner_id = q.id
+       AND fa.deleted_at IS NULL
+      WHERE q.tenant_id = #{tenantId}
+        AND q.deleted_at IS NULL
+      GROUP BY
+        q.id,
+        q.title,
+        q.subject,
+        q.grade,
+        q.knowledge_point,
+        q.difficulty,
+        q.scope,
+        ua.display_name
+      ORDER BY q.created_at DESC
+      """)
+  List<QuestionSummary> listQuestions(Long tenantId);
+
+  @Select("""
+      SELECT
+        la.id AS attendanceId,
+        l.id AS lessonId,
+        sp.id AS studentId,
+        sp.name AS studentName,
+        cg.name AS classGroupName,
+        l.topic,
+        la.status,
+        la.teacher_comment AS teacherComment,
+        l.starts_at AS startsAt
+      FROM lesson_attendance la
+      JOIN lesson l
+        ON l.id = la.lesson_id
+       AND l.deleted_at IS NULL
+      JOIN student_profile sp
+        ON sp.id = la.student_id
+       AND sp.deleted_at IS NULL
+      LEFT JOIN class_group cg
+        ON cg.id = l.class_group_id
+       AND cg.deleted_at IS NULL
+      WHERE la.tenant_id = #{tenantId}
+        AND la.deleted_at IS NULL
+      ORDER BY l.starts_at DESC, sp.name ASC
+      """)
+  List<ClassRecordSummary> listRecords(Long tenantId);
+
+  @Select("""
+      SELECT
+        nt.id,
+        CASE
+          WHEN nt.title LIKE '%作业%' THEN 'homework'
+          WHEN nt.title LIKE '%账单%' OR nt.title LIKE '%收款%' THEN 'billing'
+          WHEN nt.title LIKE '%上课%' THEN 'lesson'
+          ELSE 'system'
+        END AS category,
+        nt.title,
+        nt.content,
+        nt.scheduled_at AS scheduledAt,
+        nt.status,
+        nt.channel
+      FROM notification_task nt
+      WHERE nt.tenant_id = #{tenantId}
+        AND nt.deleted_at IS NULL
+      ORDER BY nt.scheduled_at ASC
+      """)
+  List<ReminderSummary> listReminders(Long tenantId);
+
+  @Select("""
+      SELECT
+        bc.id AS cycleId,
+        sp.id AS studentId,
+        sp.name AS studentName,
+        bc.cycle_month AS cycleMonth,
+        bc.total_amount AS totalAmount,
+        COALESCE(payments.paid_amount, 0) AS paidAmount,
+        bc.total_amount - COALESCE(payments.paid_amount, 0) AS unpaidAmount,
+        bc.status,
+        COALESCE(items.item_count, 0) AS itemCount
+      FROM billing_cycle bc
+      JOIN student_profile sp
+        ON sp.id = bc.student_id
+       AND sp.deleted_at IS NULL
+      LEFT JOIN (
+        SELECT billing_cycle_id, COUNT(*) AS item_count
+        FROM billing_item
+        WHERE deleted_at IS NULL
+        GROUP BY billing_cycle_id
+      ) items
+        ON items.billing_cycle_id = bc.id
+      LEFT JOIN (
+        SELECT billing_cycle_id, SUM(amount) AS paid_amount
+        FROM payment_record
+        WHERE deleted_at IS NULL
+        GROUP BY billing_cycle_id
+      ) payments
+        ON payments.billing_cycle_id = bc.id
+      WHERE bc.tenant_id = #{tenantId}
+        AND bc.deleted_at IS NULL
+      ORDER BY bc.cycle_month DESC, sp.name ASC
+      """)
+  List<BillingSummary> listBilling(Long tenantId);
+
+  @Select("""
+      SELECT category, label, detail, priority, dueAt
+      FROM (
+        SELECT
+          'lesson' AS category,
+          CONCAT(DATE_FORMAT(l.starts_at, '%H:%i'), ' ', cg.name, ' 上课') AS label,
+          CONCAT(COALESCE(l.subject, '课程'), ' · ', COALESCE(l.topic, '未填写主题')) AS detail,
+          'high' AS priority,
+          l.starts_at AS dueAt
+        FROM lesson l
+        JOIN class_group cg
+          ON cg.id = l.class_group_id
+         AND cg.deleted_at IS NULL
+        WHERE l.tenant_id = #{tenantId}
+          AND l.deleted_at IS NULL
+          AND l.status = 'SCHEDULED'
+        UNION ALL
+        SELECT
+          'homework' AS category,
+          CONCAT(sp.name, ' 作业待批改') AS label,
+          CONCAT(h.title, ' · 已提交 ', DATE_FORMAT(hs.submitted_at, '%m/%d %H:%i')) AS detail,
+          'medium' AS priority,
+          COALESCE(hs.submitted_at, hs.created_at) AS dueAt
+        FROM homework_submission hs
+        JOIN homework h
+          ON h.id = hs.homework_id
+         AND h.deleted_at IS NULL
+        JOIN student_profile sp
+          ON sp.id = hs.student_id
+         AND sp.deleted_at IS NULL
+        LEFT JOIN homework_review hr
+          ON hr.submission_id = hs.id
+         AND hr.deleted_at IS NULL
+        WHERE hs.tenant_id = #{tenantId}
+          AND hs.deleted_at IS NULL
+          AND hr.id IS NULL
+        UNION ALL
+        SELECT
+          'billing' AS category,
+          CONCAT(sp.name, ' 账单待收款') AS label,
+          CONCAT('剩余 ¥', FORMAT(bc.total_amount - COALESCE(SUM(pr.amount), 0), 2)) AS detail,
+          'high' AS priority,
+          CAST(CONCAT(LAST_DAY(bc.cycle_month), ' 20:00:00') AS DATETIME) AS dueAt
+        FROM billing_cycle bc
+        JOIN student_profile sp
+          ON sp.id = bc.student_id
+         AND sp.deleted_at IS NULL
+        LEFT JOIN payment_record pr
+          ON pr.billing_cycle_id = bc.id
+         AND pr.deleted_at IS NULL
+        WHERE bc.tenant_id = #{tenantId}
+          AND bc.deleted_at IS NULL
+        GROUP BY bc.id, sp.name, bc.total_amount, bc.cycle_month
+        HAVING bc.total_amount - COALESCE(SUM(pr.amount), 0) > 0
+        UNION ALL
+        SELECT
+          CASE
+            WHEN nt.title LIKE '%作业%' THEN 'homework'
+            WHEN nt.title LIKE '%账单%' OR nt.title LIKE '%收款%' THEN 'billing'
+            WHEN nt.title LIKE '%上课%' THEN 'lesson'
+            ELSE 'system'
+          END AS category,
+          nt.title AS label,
+          COALESCE(nt.content, '系统内提醒') AS detail,
+          'low' AS priority,
+          nt.scheduled_at AS dueAt
+        FROM notification_task nt
+        WHERE nt.tenant_id = #{tenantId}
+          AND nt.deleted_at IS NULL
+          AND nt.status = 'PENDING'
+      ) todo_source
+      ORDER BY dueAt ASC
+      LIMIT 12
+      """)
+  List<TodoSummary> listTodos(Long tenantId);
+}

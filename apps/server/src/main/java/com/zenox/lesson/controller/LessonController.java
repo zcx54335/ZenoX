@@ -7,6 +7,7 @@ import com.zenox.lesson.dto.RescheduleLessonRequest;
 import com.zenox.lesson.entity.Lesson;
 import com.zenox.lesson.service.LessonService;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import org.springframework.http.ContentDisposition;
@@ -38,13 +39,29 @@ public class LessonController {
   }
 
   @GetMapping("/export")
-  public ResponseEntity<byte[]> export(@RequestParam String month) {
-    YearMonth selectedMonth = YearMonth.parse(month);
-    byte[] content = lessonService.exportMonthlyLessons(selectedMonth);
+  public ResponseEntity<byte[]> export(
+      @RequestParam(required = false) String month,
+      @RequestParam(required = false) String from,
+      @RequestParam(required = false) String to
+  ) {
+    LocalDate startDate;
+    LocalDate endDate;
+    String fileLabel;
+    if (from != null && to != null) {
+      startDate = LocalDate.parse(from);
+      endDate = LocalDate.parse(to);
+      fileLabel = startDate + "_to_" + endDate;
+    } else {
+      YearMonth selectedMonth = month == null || month.isBlank() ? YearMonth.now() : YearMonth.parse(month);
+      startDate = selectedMonth.atDay(1);
+      endDate = selectedMonth.atEndOfMonth();
+      fileLabel = selectedMonth.toString();
+    }
+    byte[] content = lessonService.exportLessons(startDate, endDate);
     return ResponseEntity.ok()
         .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
         .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
-            .filename("zenox-lessons-" + selectedMonth + ".xlsx")
+            .filename("zenox-lessons-" + fileLabel + ".xlsx")
             .build()
             .toString())
         .body(content);
@@ -66,5 +83,15 @@ public class LessonController {
   @PatchMapping("/{id}/cancel")
   public ApiResponse<Lesson> cancel(@PathVariable Long id) {
     return ApiResponse.ok(lessonService.cancel(id));
+  }
+
+  @PatchMapping("/{id}/complete")
+  public ApiResponse<Lesson> complete(@PathVariable Long id) {
+    return ApiResponse.ok(lessonService.complete(id));
+  }
+
+  @PatchMapping("/{id}/undo-complete")
+  public ApiResponse<Lesson> undoComplete(@PathVariable Long id) {
+    return ApiResponse.ok(lessonService.undoComplete(id));
   }
 }

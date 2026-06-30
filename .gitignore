@@ -1,5 +1,8 @@
 node_modules
 dist
+tmp/
+.idea/
+apps/server/.idea/
 apps/**/dist
 apps/**/target
 *.tsbuildinfo

@@ -38,25 +38,74 @@ com.zenox
 
 ## Local Startup
 
-Install JDK 21 and Maven first.
+Install JDK 21, Maven, Node.js 20+, and MySQL 8 first.
 
 ```bash
 cd apps/server
-docker compose up -d
 mvn spring-boot:run
 ```
 
 Health check:
 
 ```text
-GET http://127.0.0.1:8080/api/health
+GET http://127.0.0.1:8081/api/health
 ```
 
 Swagger UI:
 
 ```text
-http://127.0.0.1:8080/swagger-ui.html
+http://127.0.0.1:8081/swagger-ui.html
 ```
+
+Default database connection in `apps/server/src/main/resources/application.yml`:
+
+```text
+host: 127.0.0.1
+port: 3306
+database: zenox
+username: zenox
+password: zenox_dev_password
+```
+
+If another computer uses different MySQL settings, set environment variables before starting the backend:
+
+```bash
+export ZENOX_DB_HOST=127.0.0.1
+export ZENOX_DB_PORT=3306
+export ZENOX_DB_NAME=zenox
+export ZENOX_DB_USERNAME=zenox
+export ZENOX_DB_PASSWORD=zenox_dev_password
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:ZENOX_DB_HOST="127.0.0.1"
+$env:ZENOX_DB_PORT="3306"
+$env:ZENOX_DB_NAME="zenox"
+$env:ZENOX_DB_USERNAME="zenox"
+$env:ZENOX_DB_PASSWORD="zenox_dev_password"
+```
+
+Frontend startup:
+
+```bash
+npm install
+npm run dev
+```
+
+Frontend URL:
+
+```text
+http://127.0.0.1:5173
+```
+
+Important local rule from the owner:
+
+- Before starting the project, stop old services on `8081` and `5173`.
+- Do not keep multiple Vite/frontend ports alive.
+- On macOS, use `lsof -nP -iTCP:8081 -sTCP:LISTEN` and `lsof -nP -iTCP:5173 -sTCP:LISTEN` to find old services.
+- On Windows, use `netstat -ano | findstr :8081` and `netstat -ano | findstr :5173`, then `taskkill /PID <pid> /F`.
 
 ## Demo Login
 
@@ -115,6 +164,8 @@ POST  /api/lessons
 PUT   /api/lessons/{id}/reschedule
 PATCH /api/lessons/{id}/cancel
 GET   /api/lessons/export?month=YYYY-MM
+PATCH /api/lessons/{id}/complete
+PATCH /api/lessons/{id}/undo-complete
 ```
 
 Homework:
@@ -122,6 +173,16 @@ Homework:
 ```text
 GET  /api/homework
 POST /api/homework
+```
+
+Billing:
+
+```text
+GET    /api/billing
+GET    /api/billing/{cycleId}
+POST   /api/billing/{cycleId}/payments
+DELETE /api/billing/payments/{paymentId}
+GET    /api/billing/{cycleId}/statement.pdf
 ```
 
 ## Schedule Rules
@@ -162,8 +223,8 @@ Current intent:
 
 Recommended next backend steps:
 
-1. Add backend method-level permission checks for lesson/student/homework endpoints.
-2. Implement class member management APIs and UI.
-3. Replace remaining frontend mock modules with backend data.
-4. Implement homework publish visibility, submission, and review.
-5. Generate billing cycles from completed lessons.
+1. Add backend method-level permission checks for lesson/student/homework/billing endpoints.
+2. Implement homework publish visibility, submission, attachments, and review.
+3. Move the large frontend `App.tsx` into feature components.
+4. Add operation logs for payment undo and lesson undo-complete.
+5. Improve branded PDF template with configurable tenant logo/colors when SaaS customization starts.

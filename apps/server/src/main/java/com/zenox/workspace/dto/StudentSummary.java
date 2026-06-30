@@ -1,16 +1,17 @@
-package com.zenox.user.dto;
+package com.zenox.workspace.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import java.math.BigDecimal;
 
-public record CreateStudentRequest(
-    @NotBlank String name,
+public record StudentSummary(
+    Long id,
+    String name,
     String grade,
     String school,
     String subject,
     String parentName,
     String parentPhone,
     BigDecimal remainingLessons,
-    String weaknessNote
+    String weaknessNote,
+    String classNames
 ) {
 }

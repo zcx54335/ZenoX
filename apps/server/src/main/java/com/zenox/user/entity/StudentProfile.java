@@ -2,6 +2,7 @@ package com.zenox.user.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.zenox.common.entity.TenantScopedEntity;
+import java.math.BigDecimal;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -15,6 +16,6 @@ public class StudentProfile extends TenantScopedEntity {
   private String subject;
   private String parentName;
   private String parentPhone;
-  private Integer remainingLessons;
+  private BigDecimal remainingLessons;
   private String weaknessNote;
 }

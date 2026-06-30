@@ -192,6 +192,89 @@ npm run build -w apps/web
 
 These passed after the schedule export work.
 
+## 2026-06-30 Evening Handoff
+
+Today the project advanced from schedule/data wiring into real tutor-studio operations. The most important completed work:
+
+- Added real workspace aggregate data for dashboard, classes, students, lessons, homework, records, reminders, billing, and forum/question views.
+- Added admin-only student management and teacher management modules in the sidebar.
+- Added class roster management:
+  - classes choose existing students and existing teachers.
+  - teacher/student creation is done from separate admin modules.
+  - class management only binds/removes existing people.
+- Added schedule completion workflow:
+  - completing a lesson creates/restores attendance records.
+  - completing a lesson deducts student remaining lessons.
+  - completing a lesson generates billing cycle/items for each student in the class.
+  - undoing completion restores student remaining lessons, soft-deletes generated attendance and billing items, and recalculates billing.
+  - completed lessons show an undo-complete action in the schedule UI.
+- Added billing payment loop:
+  - `GET /api/billing` lists billing cycles.
+  - `GET /api/billing/{cycleId}` returns billing detail with lesson items and payment records.
+  - `POST /api/billing/{cycleId}/payments` records parent payment.
+  - `DELETE /api/billing/payments/{paymentId}` soft-deletes/undoes a payment and recalculates cycle status.
+  - status is recalculated from active billing items and active payments.
+- Added monthly statement PDF:
+  - `GET /api/billing/{cycleId}/statement.pdf`.
+  - Current implementation renders an A4 branded ZenoX monthly statement as a high-resolution Java2D image and embeds it into PDF.
+  - This avoids Chinese glyph issues and requires no new Maven dependency.
+  - PDF includes ZenoX brand, Zhao Chenxiong studio label, student/parent info, billing month, amount summary cards, lesson items, payment records, footer, and page number.
+- Frontend billing page is now a billing workbench:
+  - left billing list.
+  - right detail panel.
+  - amount summary.
+  - lesson item list.
+  - payment history.
+  - record payment form.
+  - undo payment action.
+  - download monthly PDF action.
+
+Important files touched for the latest business loop:
+
+```text
+apps/server/src/main/java/com/zenox/billing/
+apps/server/src/main/java/com/zenox/lesson/
+apps/server/src/main/java/com/zenox/workspace/
+apps/server/src/main/java/com/zenox/classroom/
+apps/server/src/main/java/com/zenox/user/
+apps/server/src/main/resources/db/migration/V6__real_workspace_relations.sql
+apps/server/src/main/resources/db/migration/V7__admin_people_management_permissions.sql
+apps/web/src/App.tsx
+apps/web/src/styles.css
+```
+
+Validation performed after the latest changes:
+
+```bash
+cd apps/server && mvn test
+cd apps/web && npm run lint
+cd apps/web && npm run build
+```
+
+Also verified against running local services:
+
+- login works with `zcx / 123456`.
+- billing list endpoint returns real data.
+- billing detail endpoint returns items/payments.
+- branded statement PDF endpoint returns `%PDF-`.
+- rendered the PDF via Poppler and visually checked the page PNG; Chinese text, amounts, cards, and layout rendered correctly.
+
+Current local dev service ports:
+
+```text
+backend: http://127.0.0.1:8081
+frontend: http://127.0.0.1:5173
+```
+
+Next recommended product step:
+
+- Implement the homework loop:
+  - teacher publishes homework to class or selected students.
+  - upload attachments.
+  - student submits images/PDF/Word.
+  - teacher reviews with text comment and mistake tags.
+  - homework reminders and review status enter todos.
+
 ## Current Project Structure
 
 ```text
@@ -246,13 +329,11 @@ Initial commit:
 eeba064 Initial tutor SaaS workspace
 ```
 
-At the time this context file was created, pushing to GitHub from the Codex environment failed because the environment timed out connecting to `github.com`. The local repository and remote URL were prepared correctly.
-
-Recommended push command on the user's computer:
+Recommended push command if another local commit is created:
 
 ```bash
 cd /Users/zhaochenxiong/Projects/weini
-git push -u origin main
+git push origin main
 ```
 
 On Windows after push succeeds:
