@@ -266,6 +266,15 @@ backend: http://127.0.0.1:8081
 frontend: http://127.0.0.1:5173
 ```
 
+Database Docker setup:
+
+- A root-level `docker-compose.yml` now exists.
+- From the project root, run `docker compose up -d mysql`.
+- It starts `mysql:8.4` as `zenox-mysql`.
+- It creates database `zenox`, user `zenox`, password `zenox_dev_password`.
+- Backend defaults already point to this Docker database.
+- Flyway handles schema creation and demo seed data.
+
 Next recommended product step:
 
 - Implement the homework loop:

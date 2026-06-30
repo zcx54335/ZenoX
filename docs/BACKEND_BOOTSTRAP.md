@@ -38,7 +38,32 @@ com.zenox
 
 ## Local Startup
 
-Install JDK 21, Maven, Node.js 20+, and MySQL 8 first.
+Install Docker Desktop, JDK 21, Maven, and Node.js 20+ first.
+
+Database startup is Docker-first. From the project root:
+
+```bash
+docker compose up -d mysql
+```
+
+This command automatically starts MySQL 8.4 with:
+
+```text
+container: zenox-mysql
+host port: 3306
+database: zenox
+username: zenox
+password: zenox_dev_password
+root password: root_dev_password
+charset: utf8mb4
+timezone: Asia/Shanghai
+```
+
+The backend default datasource already matches this Docker database, so no manual SQL initialization is needed. Flyway creates tables and seed data automatically when the backend starts.
+
+If local port `3306` is already occupied, either stop the local MySQL service or change the compose port mapping to `3307:3306` and start the backend with `ZENOX_DB_PORT=3307`.
+
+Backend startup:
 
 ```bash
 cd apps/server
@@ -57,7 +82,7 @@ Swagger UI:
 http://127.0.0.1:8081/swagger-ui.html
 ```
 
-Default database connection in `apps/server/src/main/resources/application.yml`:
+Default backend database connection in `apps/server/src/main/resources/application.yml`:
 
 ```text
 host: 127.0.0.1
