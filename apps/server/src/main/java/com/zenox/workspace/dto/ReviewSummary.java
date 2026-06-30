@@ -11,6 +11,8 @@ public record ReviewSummary(
     String homeworkTitle,
     String status,
     String mistakeTags,
+    Boolean needsCorrection,
+    Boolean excellent,
     String comment,
     BigDecimal score,
     LocalDateTime submittedAt,

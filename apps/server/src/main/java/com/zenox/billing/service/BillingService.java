@@ -8,6 +8,8 @@ import com.zenox.billing.mapper.BillingMapper;
 import com.zenox.common.error.BusinessException;
 import com.zenox.common.error.ErrorCode;
 import com.zenox.common.security.CurrentUser;
+import com.zenox.common.security.DataScope;
+import com.zenox.common.security.DataScopeService;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -17,19 +19,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class BillingService {
   private final BillingMapper billingMapper;
   private final CurrentUser currentUser;
+  private final DataScopeService dataScopeService;
 
-  public BillingService(BillingMapper billingMapper, CurrentUser currentUser) {
+  public BillingService(BillingMapper billingMapper, CurrentUser currentUser, DataScopeService dataScopeService) {
     this.billingMapper = billingMapper;
     this.currentUser = currentUser;
+    this.dataScopeService = dataScopeService;
   }
 
   public List<BillingCycleHeader> list() {
-    return billingMapper.listCycles(currentUser.tenantId());
+    return billingMapper.listCycles(dataScopeService.current());
   }
 
   public BillingCycleDetail detail(Long cycleId) {
     Long tenantId = currentUser.tenantId();
-    BillingCycleHeader header = billingMapper.findCycleHeader(tenantId, cycleId);
+    BillingCycleHeader header = billingMapper.findCycleHeader(dataScopeService.current(), cycleId);
     if (header == null) {
       throw new BusinessException(ErrorCode.NOT_FOUND, "Billing cycle not found");
     }
@@ -43,7 +47,8 @@ public class BillingService {
   @Transactional
   public BillingCycleDetail recordPayment(Long cycleId, RecordPaymentRequest request) {
     Long tenantId = currentUser.tenantId();
-    BillingCycleHeader header = billingMapper.findCycleHeader(tenantId, cycleId);
+    DataScope scope = dataScopeService.current();
+    BillingCycleHeader header = billingMapper.findCycleHeader(scope, cycleId);
     if (header == null) {
       throw new BusinessException(ErrorCode.NOT_FOUND, "Billing cycle not found");
     }

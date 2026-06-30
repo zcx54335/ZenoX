@@ -3,6 +3,7 @@ package com.zenox.billing.mapper;
 import com.zenox.billing.dto.BillingCycleHeader;
 import com.zenox.billing.dto.BillingItemSummary;
 import com.zenox.billing.dto.PaymentRecordSummary;
+import com.zenox.common.security.DataScope;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,11 +46,35 @@ public interface BillingMapper {
         GROUP BY billing_cycle_id
       ) payments
         ON payments.billing_cycle_id = bc.id
-      WHERE bc.tenant_id = #{tenantId}
+      WHERE bc.tenant_id = #{scope.tenantId}
         AND bc.deleted_at IS NULL
+        AND (
+          #{scope.admin} = TRUE
+          OR (#{scope.teacher} = TRUE AND EXISTS (
+            SELECT 1
+            FROM class_member scoped_cm
+            JOIN class_teacher scoped_ct
+              ON scoped_ct.class_group_id = scoped_cm.class_group_id
+             AND scoped_ct.teacher_user_id = #{scope.userId}
+             AND scoped_ct.deleted_at IS NULL
+            WHERE scoped_cm.student_id = sp.id
+              AND scoped_cm.deleted_at IS NULL
+          ))
+          OR (#{scope.student} = TRUE AND sp.user_id = #{scope.userId})
+          OR (#{scope.parent} = TRUE AND EXISTS (
+            SELECT 1
+            FROM parent_student scoped_ps
+            JOIN parent_profile scoped_pp
+              ON scoped_pp.id = scoped_ps.parent_id
+             AND scoped_pp.user_id = #{scope.userId}
+             AND scoped_pp.deleted_at IS NULL
+            WHERE scoped_ps.student_id = sp.id
+              AND scoped_ps.deleted_at IS NULL
+          ))
+        )
       ORDER BY bc.cycle_month DESC, sp.name ASC
       """)
-  List<BillingCycleHeader> listCycles(Long tenantId);
+  List<BillingCycleHeader> listCycles(@Param("scope") DataScope scope);
 
   @Select("""
       SELECT
@@ -85,11 +110,35 @@ public interface BillingMapper {
       ) payments
         ON payments.billing_cycle_id = bc.id
       WHERE bc.id = #{cycleId}
-        AND bc.tenant_id = #{tenantId}
+        AND bc.tenant_id = #{scope.tenantId}
         AND bc.deleted_at IS NULL
+        AND (
+          #{scope.admin} = TRUE
+          OR (#{scope.teacher} = TRUE AND EXISTS (
+            SELECT 1
+            FROM class_member scoped_cm
+            JOIN class_teacher scoped_ct
+              ON scoped_ct.class_group_id = scoped_cm.class_group_id
+             AND scoped_ct.teacher_user_id = #{scope.userId}
+             AND scoped_ct.deleted_at IS NULL
+            WHERE scoped_cm.student_id = sp.id
+              AND scoped_cm.deleted_at IS NULL
+          ))
+          OR (#{scope.student} = TRUE AND sp.user_id = #{scope.userId})
+          OR (#{scope.parent} = TRUE AND EXISTS (
+            SELECT 1
+            FROM parent_student scoped_ps
+            JOIN parent_profile scoped_pp
+              ON scoped_pp.id = scoped_ps.parent_id
+             AND scoped_pp.user_id = #{scope.userId}
+             AND scoped_pp.deleted_at IS NULL
+            WHERE scoped_ps.student_id = sp.id
+              AND scoped_ps.deleted_at IS NULL
+          ))
+        )
       LIMIT 1
       """)
-  BillingCycleHeader findCycleHeader(@Param("tenantId") Long tenantId, @Param("cycleId") Long cycleId);
+  BillingCycleHeader findCycleHeader(@Param("scope") DataScope scope, @Param("cycleId") Long cycleId);
 
   @Select("""
       SELECT

@@ -438,3 +438,261 @@ apps/web/src/styles.css
 ```
 
 This should restore most of the product and design context without needing the previous chat history.
+
+## 2026-06-30 Permission And Data Scope Update
+
+This workspace now has backend permission checks and role-based data scope isolation.
+
+Implemented in this pass:
+
+- Added backend permission enforcement with `@RequirePermission`, `PermissionService`, and `PermissionInterceptor`.
+- Added `DataScope` and `DataScopeService` for current tenant/user/role scope.
+- Changed workspace aggregate queries so each role only receives allowed data:
+  - admins see the whole tenant;
+  - teachers see their assigned classes, students, lessons, homework, records, and related billing;
+  - students see only their own homework/reviews/records where permissions allow;
+  - parents see only bound children's homework/reviews/records/billing.
+- Changed lesson list/export to use data scope.
+- Added lesson management ownership checks: non-admin teachers can only manage lessons where they are the `teacher_user_id`.
+- Changed class list/roster to use data scope.
+- Class roster maintenance now requires tenant owner/admin at the service layer.
+- Teachers can view their classes but no longer receive the full available student/teacher pool.
+- Changed homework list and billing list/detail to use data scope.
+- Added `billing:manage` permission for owner/admin only.
+- Added migration `V9__teacher_data_scope_permissions.sql` to remove `student:manage` from teachers.
+- Frontend hides class roster mutation UI unless the user has `student:manage`.
+- Frontend hides billing payment mutation UI unless the user has `billing:manage`, and PDF download unless the user has `billing:export`.
+- Business exceptions now map to correct HTTP statuses, including real 403 responses for forbidden actions.
+
+Validation run on this machine:
+
+```text
+cd apps/server && mvn test
+npm run lint -w apps/web
+```
+
+## 2026-06-30 Actionable Todo Update
+
+Dashboard todos are now treated as actionable business entrypoints, not just summary rows.
+
+Implemented:
+
+- Backend `TodoSummary` now includes target metadata:
+  - `targetType`
+  - `targetId`
+  - `action`
+  - `status`
+- Workspace todo SQL now emits concrete targets for lessons, homework submissions, billing cycles, and notifications.
+- Frontend todo cards route to the correct module:
+  - lesson todos open `日历排课`;
+  - homework submission todos open `批改反馈`;
+  - billing todos open `收费记录`;
+  - notification todos open `提醒中心`.
+- When a todo opens a module, the destination item is visually highlighted and a short location notice is shown.
+- Schedule todos also switch the visible date range to the lesson week and select the lesson date.
+- Billing todos select the corresponding billing cycle so detail and payment workflow load immediately.
+
+Validation after this update:
+
+```text
+cd apps/server && mvn test
+npm run lint -w apps/web
+npm run build -w apps/web
+```
+
+## 2026-07-01 Git Handoff Context
+
+This checkpoint packages the recent backend and frontend work into a git-ready state.
+
+Current product state:
+
+- Backend has role/permission enforcement with data scope and real role-limited workspace data.
+- Lessons, class roster, homework, review queue, billing, todos, and forum now rely on backend data instead of mock-only UI lists.
+- Homework supports publish, submit, and review flows backed by database records.
+- Dashboard todos route users into the correct module and highlight the target item.
+- Forum now uses a dedicated community layout rather than a generic admin-card module:
+  - hero header with real post/comment/attachment counts;
+  - right rail with topics and active discussions derived from real posts;
+  - "发布动态" opens a modal instead of occupying the top of the feed;
+  - posts support real multipart file upload;
+  - likes, favorites, and comments write to `question_interaction`;
+  - workspace summaries return `likedByMe` and `favoriteByMe`.
+- Frontend validation has passed with:
+  - `npm run lint -w apps/web`
+  - `npm run build -w apps/web`
+- Backend validation has passed with:
+  - `cd apps/server && mvn test`
+
+Important follow-up:
+
+- Restart the backend after pulling this commit so the new question/forum endpoints are available.
+- The next forum step should be showing real comment lists and making uploaded attachments downloadable/previewable from `file_attachment`.
+
+## 2026-06-30 Unified Form Controls And Forum UX Update
+
+Frontend product polish added after reviewing dropdown and forum screenshots:
+
+- Replaced the homework publish native dropdowns with the same `GlassSelect` interaction used by the schedule page.
+- Kept a global fallback style for any remaining native select so dropdown menus are not transparent and option text stays readable.
+- Improved placeholder contrast for management forms, homework submit boxes, review editors, and payment forms in light/dark modes.
+- Reworked the question bank/forum page into a Weibo-like feed:
+  - free-form post composer;
+  - title/content input;
+  - subject/grade/scope metadata;
+  - multi-file attachment picker;
+  - feed cards with author, metadata, attachments, like/favorite/comment/action buttons.
+- Added `POST /api/questions` so forum posts are saved to the backend `question` table.
+- Forum attachment selection now uploads real files with multipart `FormData`; the backend stores them under `uploads/question/{questionId}/` and records metadata in `file_attachment` as `QUESTION` attachments.
+- Workspace question summaries now include `content`, so refreshed forum feeds show real persisted post text.
+- Hid the legacy question-card grid so the forum no longer shows duplicate product surfaces.
+- Reworked custom fields into a field dictionary center:
+  - subject dictionary;
+  - grade dictionary;
+  - mistake tags;
+  - lesson delivery modes;
+  - payment methods;
+  - shared status enums.
+- Hid the legacy custom-field table.
+- Updated `ModuleStatus` badge styling so status chips are flatter, smaller, clearer, and no longer look like oversized blue pills.
+- Added responsive rules for the forum feed and field dictionary grids.
+
+Validation after this update:
+
+```text
+cd apps/server && mvn test
+npm run lint -w apps/web
+npm run build -w apps/web
+```
+
+## 2026-06-30 Forum Social Feed Refinement
+
+The question bank/forum should be treated as a social discussion feed, closer to Weibo or WeChat Moments, not as a question-card management grid.
+
+Latest frontend refinement:
+
+- Changed the forum layout from a two-column composer/list layout to a centered single-column social feed.
+- The composer now behaves like a social post box:
+  - large textarea first;
+  - optional title below;
+  - subject/grade/scope metadata;
+  - visible attachment preview tiles before publishing.
+- Post cards now include:
+  - avatar;
+  - creator and grade/subject/scope metadata;
+  - title and full content;
+  - attachment preview tiles;
+  - local like/favorite feedback;
+  - inline comment input and send button;
+  - keep "convert to homework" as a future business action.
+- Added responsive rules so the feed collapses cleanly on small screens.
+
+Validation:
+
+```text
+npm run lint -w apps/web
+npm run build -w apps/web
+```
+
+## 2026-06-30 Forum Layout Rework From Community References
+
+After visual review, the centered single-column forum still felt too narrow and too much like a backend form. The forum module is now intentionally allowed to look different from the rest of the operations dashboard.
+
+Reference principles:
+
+- Discourse-style communities emphasize continuous conversations, mobile-first posting, file attachments, topic context, and replies flowing down the page.
+- Reddit/community-feed style layouts benefit from a main feed plus a secondary rail for topics, active discussions, and community guidance.
+
+Implemented frontend changes:
+
+- Replaced the standard module header with a dedicated `forumHero` community header.
+- Added forum-level stats for posts, comments, and attachments.
+- Changed the page shell to a two-column desktop layout:
+  - main column: composer and post feed;
+  - right rail: hot topics, active discussions, posting guide.
+- Reduced heavy glass-card weight and widened the content area so the forum no longer floats awkwardly in the middle of the screen.
+- Kept responsive fallback to one column on smaller viewports.
+
+Validation:
+
+```text
+npm run lint -w apps/web
+npm run build -w apps/web
+```
+
+## 2026-06-30 Forum Composer Modal And Real Interactions
+
+The forum composer should not occupy the top of the feed. It now opens from a "发布动态" button.
+
+Implemented:
+
+- Added a forum publish button in the forum hero.
+- Hid the inline composer from the feed.
+- Added a modal composer with:
+  - content textarea;
+  - optional title;
+  - subject/grade/scope;
+  - real multipart file attachments;
+  - close button and backdrop click close.
+- Added backend real interaction endpoints:
+  - `POST /api/questions/{questionId}/like`
+  - `POST /api/questions/{questionId}/favorite`
+  - `POST /api/questions/{questionId}/comments`
+- Likes and favorites toggle real `question_interaction` rows.
+- Comments insert real `question_interaction` rows with `interaction_type = COMMENT`.
+- Workspace question summaries now include `likedByMe` and `favoriteByMe`.
+- Frontend buttons now use backend counts/state and refresh `/api/workspace`; they no longer rely on local fake counts.
+- Right rail hot topics are now derived from real `forumPosts` data instead of hardcoded topic labels.
+
+Validation:
+
+```text
+cd apps/server && mvn test
+npm run lint -w apps/web
+npm run build -w apps/web
+```
+
+## 2026-06-30 Homework Loop Update
+
+The homework MVP loop is now implemented against real backend data.
+
+Backend additions:
+
+- `POST /api/homework` now supports publishing to:
+  - a whole class via `classGroupId`;
+  - selected students via `studentIds`;
+  - a lesson's class via `lessonId`.
+- `POST /api/homework/{homeworkId}/submissions` records a homework submission.
+  - Students can submit their own homework.
+  - Admin/teacher can record a submission for a visible student.
+  - Parents cannot submit for students in this version.
+- `POST /api/homework/submissions/{submissionId}/review` records or updates teacher review.
+  - Supports score, text comment, mistake tags, `needsCorrection`, and `excellent`.
+  - Marks the submission as `REVIEWED`.
+  - Inserts an in-app notification for the student when the student account is bound.
+- Added migration `V10__homework_review_flags.sql` for `needs_correction` and `excellent`.
+- Homework service checks real data scope:
+  - admins can manage all tenant homework;
+  - teachers can manage homework for their responsible lessons/classes/students;
+  - students can only submit their own visible homework.
+- Dashboard homework todos now include teacher class-scope reviewable submissions, not only homework directly created by the teacher.
+
+Frontend additions:
+
+- Homework center now includes a real publish form for teachers/admins.
+- Homework cards support recording student submissions.
+- Review queue now has inline review editing:
+  - score;
+  - mistake tags;
+  - text feedback;
+  - needs correction;
+  - excellent work;
+  - save review action.
+- Successful publish/submit/review actions refresh `/api/workspace` so lists, todos, and review state stay in sync.
+
+Validation after this update:
+
+```text
+cd apps/server && mvn test
+npm run lint -w apps/web
+npm run build -w apps/web
+```

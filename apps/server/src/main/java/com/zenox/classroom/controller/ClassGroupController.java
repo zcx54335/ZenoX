@@ -1,5 +1,6 @@
 package com.zenox.classroom.controller;
 
+import com.zenox.auth.security.RequirePermission;
 import com.zenox.classroom.dto.AddClassStudentRequest;
 import com.zenox.classroom.dto.AddClassTeacherRequest;
 import com.zenox.classroom.dto.ClassRosterResponse;
@@ -27,21 +28,25 @@ public class ClassGroupController {
   }
 
   @GetMapping
+  @RequirePermission("student:view")
   public ApiResponse<List<ClassGroup>> list() {
     return ApiResponse.ok(classGroupService.list());
   }
 
   @PostMapping
+  @RequirePermission("student:manage")
   public ApiResponse<ClassGroup> create(@Valid @RequestBody CreateClassGroupRequest request) {
     return ApiResponse.ok(classGroupService.create(request));
   }
 
   @GetMapping("/{classGroupId}/roster")
+  @RequirePermission("student:view")
   public ApiResponse<ClassRosterResponse> roster(@PathVariable Long classGroupId) {
     return ApiResponse.ok(classGroupService.roster(classGroupId));
   }
 
   @PostMapping("/{classGroupId}/students")
+  @RequirePermission("student:manage")
   public ApiResponse<ClassRosterResponse> addStudent(
       @PathVariable Long classGroupId,
       @Valid @RequestBody AddClassStudentRequest request
@@ -50,11 +55,13 @@ public class ClassGroupController {
   }
 
   @DeleteMapping("/{classGroupId}/students/{studentId}")
+  @RequirePermission("student:manage")
   public ApiResponse<ClassRosterResponse> removeStudent(@PathVariable Long classGroupId, @PathVariable Long studentId) {
     return ApiResponse.ok(classGroupService.removeStudent(classGroupId, studentId));
   }
 
   @PostMapping("/{classGroupId}/teachers")
+  @RequirePermission("student:manage")
   public ApiResponse<ClassRosterResponse> addTeacher(
       @PathVariable Long classGroupId,
       @Valid @RequestBody AddClassTeacherRequest request
@@ -63,6 +70,7 @@ public class ClassGroupController {
   }
 
   @DeleteMapping("/{classGroupId}/teachers/{teacherUserId}")
+  @RequirePermission("student:manage")
   public ApiResponse<ClassRosterResponse> removeTeacher(
       @PathVariable Long classGroupId,
       @PathVariable Long teacherUserId

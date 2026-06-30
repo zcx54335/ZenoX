@@ -1,6 +1,7 @@
 package com.zenox.lesson.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.zenox.common.security.DataScope;
 import com.zenox.lesson.entity.Lesson;
 import com.zenox.lesson.dto.LessonBillingMember;
 import com.zenox.lesson.dto.LessonScheduleItem;
@@ -61,8 +62,44 @@ public interface LessonMapper extends BaseMapper<Lesson> {
       LEFT JOIN class_member cm
         ON cm.class_group_id = l.class_group_id
        AND cm.deleted_at IS NULL
-      WHERE l.tenant_id = #{tenantId}
+      WHERE l.tenant_id = #{scope.tenantId}
         AND l.deleted_at IS NULL
+        AND (
+          #{scope.admin} = TRUE
+          OR (#{scope.teacher} = TRUE AND (
+            l.teacher_user_id = #{scope.userId}
+            OR EXISTS (
+              SELECT 1
+              FROM class_teacher ct
+              WHERE ct.class_group_id = l.class_group_id
+                AND ct.teacher_user_id = #{scope.userId}
+                AND ct.deleted_at IS NULL
+            )
+          ))
+          OR (#{scope.student} = TRUE AND EXISTS (
+            SELECT 1
+            FROM class_member scoped_cm
+            JOIN student_profile scoped_sp
+              ON scoped_sp.id = scoped_cm.student_id
+             AND scoped_sp.user_id = #{scope.userId}
+             AND scoped_sp.deleted_at IS NULL
+            WHERE scoped_cm.class_group_id = l.class_group_id
+              AND scoped_cm.deleted_at IS NULL
+          ))
+          OR (#{scope.parent} = TRUE AND EXISTS (
+            SELECT 1
+            FROM class_member scoped_cm
+            JOIN parent_student scoped_ps
+              ON scoped_ps.student_id = scoped_cm.student_id
+             AND scoped_ps.deleted_at IS NULL
+            JOIN parent_profile scoped_pp
+              ON scoped_pp.id = scoped_ps.parent_id
+             AND scoped_pp.user_id = #{scope.userId}
+             AND scoped_pp.deleted_at IS NULL
+            WHERE scoped_cm.class_group_id = l.class_group_id
+              AND scoped_cm.deleted_at IS NULL
+          ))
+        )
       GROUP BY
         l.id,
         l.class_group_id,
@@ -78,7 +115,7 @@ public interface LessonMapper extends BaseMapper<Lesson> {
         l.status
       ORDER BY l.starts_at ASC
       """)
-  List<LessonScheduleItem> listScheduleByTenantId(Long tenantId);
+  List<LessonScheduleItem> listScheduleByScope(@Param("scope") DataScope scope);
 
   @Select("""
       SELECT
@@ -102,10 +139,46 @@ public interface LessonMapper extends BaseMapper<Lesson> {
       LEFT JOIN class_member cm
         ON cm.class_group_id = l.class_group_id
        AND cm.deleted_at IS NULL
-      WHERE l.tenant_id = #{tenantId}
+      WHERE l.tenant_id = #{scope.tenantId}
         AND l.deleted_at IS NULL
         AND l.starts_at >= #{startsAt}
         AND l.starts_at < #{endsAt}
+        AND (
+          #{scope.admin} = TRUE
+          OR (#{scope.teacher} = TRUE AND (
+            l.teacher_user_id = #{scope.userId}
+            OR EXISTS (
+              SELECT 1
+              FROM class_teacher ct
+              WHERE ct.class_group_id = l.class_group_id
+                AND ct.teacher_user_id = #{scope.userId}
+                AND ct.deleted_at IS NULL
+            )
+          ))
+          OR (#{scope.student} = TRUE AND EXISTS (
+            SELECT 1
+            FROM class_member scoped_cm
+            JOIN student_profile scoped_sp
+              ON scoped_sp.id = scoped_cm.student_id
+             AND scoped_sp.user_id = #{scope.userId}
+             AND scoped_sp.deleted_at IS NULL
+            WHERE scoped_cm.class_group_id = l.class_group_id
+              AND scoped_cm.deleted_at IS NULL
+          ))
+          OR (#{scope.parent} = TRUE AND EXISTS (
+            SELECT 1
+            FROM class_member scoped_cm
+            JOIN parent_student scoped_ps
+              ON scoped_ps.student_id = scoped_cm.student_id
+             AND scoped_ps.deleted_at IS NULL
+            JOIN parent_profile scoped_pp
+              ON scoped_pp.id = scoped_ps.parent_id
+             AND scoped_pp.user_id = #{scope.userId}
+             AND scoped_pp.deleted_at IS NULL
+            WHERE scoped_cm.class_group_id = l.class_group_id
+              AND scoped_cm.deleted_at IS NULL
+          ))
+        )
       GROUP BY
         l.id,
         l.class_group_id,
@@ -121,8 +194,8 @@ public interface LessonMapper extends BaseMapper<Lesson> {
         l.status
       ORDER BY l.starts_at ASC
       """)
-  List<LessonScheduleItem> listScheduleByTenantIdAndRange(
-      @Param("tenantId") Long tenantId,
+  List<LessonScheduleItem> listScheduleByScopeAndRange(
+      @Param("scope") DataScope scope,
       @Param("startsAt") java.time.LocalDateTime startsAt,
       @Param("endsAt") java.time.LocalDateTime endsAt
   );
@@ -151,6 +224,25 @@ public interface LessonMapper extends BaseMapper<Lesson> {
       LIMIT 1
       """)
   Lesson findByIdAndTenantId(@Param("id") Long id, @Param("tenantId") Long tenantId);
+
+  @Select("""
+      SELECT COUNT(*)
+      FROM class_group cg
+      WHERE cg.id = #{classGroupId}
+        AND cg.tenant_id = #{scope.tenantId}
+        AND cg.deleted_at IS NULL
+        AND (
+          #{scope.admin} = TRUE
+          OR (#{scope.teacher} = TRUE AND EXISTS (
+            SELECT 1
+            FROM class_teacher ct
+            WHERE ct.class_group_id = cg.id
+              AND ct.teacher_user_id = #{scope.userId}
+              AND ct.deleted_at IS NULL
+          ))
+        )
+      """)
+  int countVisibleClassForScheduling(@Param("scope") DataScope scope, @Param("classGroupId") Long classGroupId);
 
   @Select("""
       SELECT COUNT(*)

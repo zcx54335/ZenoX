@@ -1,5 +1,6 @@
 package com.zenox.lesson.controller;
 
+import com.zenox.auth.security.RequirePermission;
 import com.zenox.common.api.ApiResponse;
 import com.zenox.lesson.dto.CreateLessonRequest;
 import com.zenox.lesson.dto.LessonScheduleItem;
@@ -34,11 +35,13 @@ public class LessonController {
   }
 
   @GetMapping
+  @RequirePermission("lesson:view")
   public ApiResponse<List<LessonScheduleItem>> list() {
     return ApiResponse.ok(lessonService.list());
   }
 
   @GetMapping("/export")
+  @RequirePermission("lesson:view")
   public ResponseEntity<byte[]> export(
       @RequestParam(required = false) String month,
       @RequestParam(required = false) String from,
@@ -68,11 +71,13 @@ public class LessonController {
   }
 
   @PostMapping
+  @RequirePermission("lesson:manage")
   public ApiResponse<Lesson> create(@Valid @RequestBody CreateLessonRequest request) {
     return ApiResponse.ok(lessonService.create(request));
   }
 
   @PutMapping("/{id}/reschedule")
+  @RequirePermission("lesson:manage")
   public ApiResponse<Lesson> reschedule(
       @PathVariable Long id,
       @Valid @RequestBody RescheduleLessonRequest request
@@ -81,16 +86,19 @@ public class LessonController {
   }
 
   @PatchMapping("/{id}/cancel")
+  @RequirePermission("lesson:manage")
   public ApiResponse<Lesson> cancel(@PathVariable Long id) {
     return ApiResponse.ok(lessonService.cancel(id));
   }
 
   @PatchMapping("/{id}/complete")
+  @RequirePermission("lesson:manage")
   public ApiResponse<Lesson> complete(@PathVariable Long id) {
     return ApiResponse.ok(lessonService.complete(id));
   }
 
   @PatchMapping("/{id}/undo-complete")
+  @RequirePermission("lesson:manage")
   public ApiResponse<Lesson> undoComplete(@PathVariable Long id) {
     return ApiResponse.ok(lessonService.undoComplete(id));
   }

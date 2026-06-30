@@ -7,11 +7,14 @@ public record QuestionSummary(
     String grade,
     String knowledgePoint,
     String difficulty,
+    String content,
     String scope,
     String creatorName,
     Integer likeCount,
     Integer favoriteCount,
     Integer commentCount,
-    Integer attachmentCount
+    Integer attachmentCount,
+    Boolean likedByMe,
+    Boolean favoriteByMe
 ) {
 }

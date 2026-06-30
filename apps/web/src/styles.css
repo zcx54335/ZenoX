@@ -1014,6 +1014,144 @@ button {
   font-size: 23px;
 }
 
+.todoBell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
+  background: rgba(var(--accent-rgb), 0.12);
+  color: var(--accent);
+}
+
+.todoBell.hasPending {
+  background:
+    linear-gradient(135deg, rgba(255, 87, 87, 0.22), rgba(var(--accent-rgb), 0.14)),
+    rgba(255, 255, 255, 0.46);
+  color: #ef4444;
+  box-shadow: 0 16px 34px rgba(239, 68, 68, 0.18);
+}
+
+.todoBell span {
+  position: absolute;
+  right: -6px;
+  top: -6px;
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border: 2px solid rgba(255, 255, 255, 0.78);
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 950;
+  box-shadow: 0 10px 22px rgba(239, 68, 68, 0.34);
+}
+
+.todoFilters {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -2px 0 12px;
+}
+
+.todoFilter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 255, 255, 0.44);
+  border-radius: 999px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.44), rgba(var(--accent-rgb), 0.06)),
+    rgba(255, 255, 255, 0.28);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 860;
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.todoFilter:hover,
+.todoFilter.active {
+  transform: translateY(-1px);
+  border-color: rgba(var(--accent-rgb), 0.48);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.24), rgba(var(--accent-2-rgb), 0.12)),
+    rgba(255, 255, 255, 0.54);
+  color: var(--ink);
+  box-shadow: 0 12px 26px rgba(var(--accent-rgb), 0.12);
+}
+
+.todoFilter strong {
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.14);
+  color: var(--accent);
+  font-size: 12px;
+}
+
+.todoFilter.active strong {
+  background: var(--accent);
+  color: #fff;
+}
+
+.todoAlert {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  margin-bottom: 12px;
+  padding: 10px 13px;
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.12), rgba(var(--accent-2-rgb), 0.08)),
+    rgba(255, 255, 255, 0.34);
+  color: var(--ink);
+}
+
+.todoAlert.urgent {
+  border-color: rgba(239, 68, 68, 0.36);
+  background:
+    linear-gradient(135deg, rgba(239, 68, 68, 0.18), rgba(var(--accent-rgb), 0.1)),
+    rgba(255, 255, 255, 0.38);
+  box-shadow:
+    0 16px 36px rgba(239, 68, 68, 0.1),
+    inset 4px 0 0 rgba(239, 68, 68, 0.72);
+}
+
+.todoAlert strong,
+.todoAlert span {
+  display: block;
+}
+
+.todoAlert strong {
+  font-weight: 940;
+}
+
+.todoAlert span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 780;
+}
+
 .todoList,
 .lessonList {
   position: relative;
@@ -2180,11 +2318,59 @@ button {
 .fieldsTable div,
 .permissionMatrix div,
 .timelineItem {
+  position: relative;
   display: grid;
   align-items: center;
   gap: 14px;
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.38);
+}
+
+.scheduleRow.focused,
+.reviewRow.focused,
+.timelineItem.focused {
+  outline: 2px solid rgba(var(--accent-rgb), 0.68);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.24), rgba(var(--accent-2-rgb), 0.12)),
+    rgba(255, 255, 255, 0.48);
+  box-shadow:
+    0 22px 60px rgba(var(--accent-rgb), 0.24),
+    inset 5px 0 0 rgba(var(--accent-rgb), 0.88),
+    inset 0 1px 0 rgba(255, 255, 255, 0.46);
+  animation: focusPulse 1.8s ease-in-out infinite;
+}
+
+.focusNotice {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid rgba(var(--accent-rgb), 0.34);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.22), rgba(var(--accent-2-rgb), 0.1)),
+    rgba(255, 255, 255, 0.34);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 880;
+  box-shadow: 0 16px 36px rgba(var(--accent-rgb), 0.14);
+}
+
+@keyframes focusPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 22px 60px rgba(var(--accent-rgb), 0.22),
+      inset 5px 0 0 rgba(var(--accent-rgb), 0.86),
+      inset 0 1px 0 rgba(255, 255, 255, 0.46);
+  }
+
+  50% {
+    box-shadow:
+      0 28px 76px rgba(var(--accent-rgb), 0.34),
+      inset 5px 0 0 rgba(var(--accent-2-rgb), 0.9),
+      inset 0 1px 0 rgba(255, 255, 255, 0.58);
+  }
 }
 
 .scheduleRow {
@@ -2414,34 +2600,53 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 30px;
+  min-height: 26px;
   width: max-content;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: rgba(var(--accent-rgb), 0.13);
+  max-width: 100%;
+  padding: 0 9px;
+  border: 1px solid rgba(var(--accent-rgb), 0.24);
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.14), rgba(var(--accent-2-rgb), 0.06)),
+    rgba(255, 255, 255, 0.26);
   color: var(--accent);
-  font-size: 12px;
-  font-weight: 880;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
   white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
 }
 
 .statusTag.green {
-  background: rgba(22, 165, 111, 0.14);
+  border-color: rgba(22, 165, 111, 0.28);
+  background:
+    linear-gradient(135deg, rgba(22, 165, 111, 0.18), rgba(34, 197, 94, 0.08)),
+    rgba(255, 255, 255, 0.24);
   color: #0b8b5a;
 }
 
 .statusTag.amber {
-  background: rgba(215, 122, 0, 0.14);
+  border-color: rgba(215, 122, 0, 0.28);
+  background:
+    linear-gradient(135deg, rgba(215, 122, 0, 0.18), rgba(245, 158, 11, 0.08)),
+    rgba(255, 255, 255, 0.24);
   color: #b35f00;
 }
 
 .statusTag.red {
-  background: rgba(236, 72, 95, 0.14);
+  border-color: rgba(236, 72, 95, 0.28);
+  background:
+    linear-gradient(135deg, rgba(236, 72, 95, 0.18), rgba(248, 113, 113, 0.08)),
+    rgba(255, 255, 255, 0.24);
   color: #c9234a;
 }
 
 .statusTag.violet {
-  background: rgba(118, 92, 255, 0.14);
+  border-color: rgba(118, 92, 255, 0.28);
+  background:
+    linear-gradient(135deg, rgba(118, 92, 255, 0.18), rgba(125, 211, 252, 0.08)),
+    rgba(255, 255, 255, 0.24);
   color: #5c46df;
 }
 
@@ -2665,14 +2870,35 @@ button {
 .rosterActionPanel {
   display: grid;
   gap: 16px;
+  overflow: visible;
+  isolation: isolate;
+}
+
+.rosterActionPanel:has(.popupField.isOpen) {
+  z-index: 3600;
 }
 
 .rosterAddBlock {
+  position: relative;
+  z-index: 1;
   padding: 14px;
   border-radius: 20px;
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.44), rgba(var(--accent-rgb), 0.07)),
     rgba(255, 255, 255, 0.24);
+}
+
+.rosterAddBlock:has(.popupField.isOpen) {
+  z-index: 3800;
+}
+
+.rosterAddBlock .glassSelectMenu {
+  background:
+    radial-gradient(circle at 16% 8%, rgba(255, 255, 255, 0.94), transparent 32%),
+    radial-gradient(circle at 84% 12%, rgba(var(--accent-rgb), 0.18), transparent 30%),
+    linear-gradient(145deg, rgba(248, 251, 255, 0.99), rgba(235, 244, 255, 0.99)),
+    #f4f8ff !important;
+  background-color: #f4f8ff !important;
 }
 
 .rosterAddBlock .blackButton {
@@ -2693,6 +2919,7 @@ button {
 }
 
 .managementForm input,
+.managementForm select,
 .managementForm textarea {
   width: 100%;
   min-height: 44px;
@@ -2706,10 +2933,92 @@ button {
   padding: 0 12px;
 }
 
+.managementForm select {
+  appearance: none;
+  cursor: pointer;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.46), rgba(var(--accent-rgb), 0.08)),
+    rgba(255, 255, 255, 0.3);
+  color: var(--ink);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 10px 24px rgba(var(--accent-rgb), 0.08);
+}
+
+.managementForm select:focus {
+  border-color: rgba(var(--accent-rgb), 0.52);
+  box-shadow:
+    0 0 0 3px rgba(var(--accent-rgb), 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.managementForm select option {
+  background: #172238;
+  color: #f8fbff;
+  font-weight: 780;
+}
+
 .managementForm textarea {
   min-height: 112px;
   padding: 12px;
   resize: vertical;
+}
+
+.inlineCheck {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+}
+
+.inlineCheck input {
+  width: 18px;
+  min-height: 18px;
+}
+
+.homeworkComposer {
+  margin: 18px 0;
+}
+
+.homeworkCard {
+  gap: 12px;
+}
+
+.homeworkSubmitBox {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.homeworkSubmitBox textarea {
+  width: 100%;
+  min-height: 74px;
+  border: 1px solid rgba(255, 255, 255, 0.44);
+  border-radius: 14px;
+  outline: 0;
+  background: rgba(255, 255, 255, 0.38);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 760;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.managementForm input::placeholder,
+.managementForm textarea::placeholder,
+.homeworkSubmitBox textarea::placeholder,
+.reviewEditor input::placeholder,
+.reviewEditor textarea::placeholder,
+.paymentForm input::placeholder {
+  color: rgba(57, 70, 94, 0.68);
+  opacity: 1;
+}
+
+.homeworkSubmitBox .ghostButton {
+  width: fit-content;
 }
 
 .managementForm input[type="number"] {
@@ -2793,6 +3102,67 @@ button {
   padding: 14px;
 }
 
+.reviewEditor {
+  order: 4;
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.reviewEditor label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.reviewEditor input,
+.reviewEditor textarea {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.44);
+  border-radius: 14px;
+  outline: 0;
+  background: rgba(255, 255, 255, 0.36);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 760;
+  padding: 0 11px;
+}
+
+.reviewEditor textarea {
+  min-height: 78px;
+  padding: 10px 11px;
+  resize: vertical;
+}
+
+.reviewSwitches {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.reviewSwitches label {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.1);
+}
+
+.reviewSwitches input {
+  width: 16px;
+  min-height: 16px;
+}
+
 .reviewRow span {
   display: block;
   margin-top: 5px;
@@ -2808,6 +3178,642 @@ button {
 .questionCard,
 .financeCard {
   min-height: 218px;
+}
+
+.forumWorkbench {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.72fr) minmax(0, 1.45fr);
+  gap: 18px;
+  margin-top: 18px;
+  align-items: start;
+}
+
+.forumComposer,
+.questionPost {
+  border-radius: 24px;
+}
+
+.forumComposerForm {
+  display: grid;
+  gap: 14px;
+}
+
+.forumComposerTop,
+.questionPost {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.forumAvatar {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(var(--accent-rgb), 0.26);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.24), rgba(var(--accent-2-rgb), 0.12)),
+    rgba(255, 255, 255, 0.28);
+  color: var(--accent);
+  font-size: 17px;
+  font-weight: 950;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32);
+}
+
+.forumAvatar.small {
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  font-size: 15px;
+}
+
+.forumComposerTop input,
+.forumComposerTop textarea,
+.forumMetaGrid input {
+  width: 100%;
+  border: 1px solid var(--border);
+  outline: none;
+  background: rgba(255, 255, 255, 0.24);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+}
+
+.forumComposerTop input {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 16px;
+  font-size: 17px;
+}
+
+.forumComposerTop textarea {
+  min-height: 126px;
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 20px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.forumComposerTop input::placeholder,
+.forumComposerTop textarea::placeholder,
+.forumMetaGrid input::placeholder {
+  color: rgba(57, 70, 94, 0.7);
+  opacity: 1;
+}
+
+.forumMetaGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.forumMetaGrid input {
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 14px;
+  font-size: 13px;
+}
+
+.forumComposerActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+.fileAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
+  border-radius: 14px;
+  background: rgba(var(--accent-rgb), 0.1);
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.fileAction input {
+  display: none;
+}
+
+.forumComposerActions > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.forumFeed {
+  display: grid;
+  gap: 12px;
+}
+
+.questionPost {
+  min-height: 172px;
+  padding: 18px;
+}
+
+.questionPostBody {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.questionPostTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.questionPostTop strong,
+.questionPost h3 {
+  color: var(--ink);
+}
+
+.questionPostTop span,
+.questionPost p {
+  color: var(--muted);
+}
+
+.questionPostTop span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 780;
+}
+
+.questionPost h3 {
+  margin: 0;
+  font-size: clamp(18px, 1.7vw, 25px);
+  letter-spacing: 0;
+}
+
+.questionPost p {
+  margin: 0;
+  line-height: 1.75;
+}
+
+.attachmentStrip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
+  border-radius: 14px;
+  background: rgba(var(--accent-rgb), 0.08);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 880;
+}
+
+.attachmentStrip small {
+  color: var(--muted);
+  font-weight: 780;
+}
+
+.forumActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 2px;
+}
+
+.forumActions button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 880;
+}
+
+.forumActions button:hover {
+  border-color: rgba(var(--accent-rgb), 0.36);
+  background: rgba(var(--accent-rgb), 0.12);
+  color: var(--accent);
+}
+
+.socialForum {
+  grid-template-columns: minmax(0, 760px) 320px;
+  justify-content: center;
+  align-items: start;
+  gap: 22px;
+  max-width: 1180px;
+  margin: 18px auto 0;
+}
+
+.forumModuleView {
+  max-width: none;
+}
+
+.forumHero {
+  position: relative;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 18px;
+  max-width: 1180px;
+  min-height: 150px;
+  margin: 0 auto;
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 14% 10%, rgba(var(--accent-rgb), 0.26), transparent 28%),
+    radial-gradient(circle at 90% 0%, rgba(var(--accent-2-rgb), 0.2), transparent 30%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(var(--accent-rgb), 0.08)),
+    rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 28px 80px rgba(10, 20, 40, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.forumPublishButton {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  font-size: 14px;
+  font-weight: 950;
+  box-shadow: 0 18px 42px rgba(var(--accent-rgb), 0.28);
+}
+
+.inlineForumComposer {
+  display: none;
+}
+
+.forumModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(5, 8, 18, 0.58);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.forumComposerModal {
+  width: min(720px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+}
+
+.forumModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.forumModalHeader h3 {
+  margin: 4px 0 0;
+  color: var(--ink);
+  font-size: 28px;
+  letter-spacing: 0;
+}
+
+.forumHeroIcon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  box-shadow: 0 16px 36px rgba(var(--accent-rgb), 0.26);
+}
+
+.forumHero h2 {
+  margin: 4px 0 8px;
+  color: var(--ink);
+  font-size: clamp(34px, 4.8vw, 58px);
+  letter-spacing: 0;
+  line-height: 0.92;
+}
+
+.forumHero span {
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.forumHeroStats {
+  display: grid;
+  grid-template-columns: repeat(3, 82px);
+  gap: 10px;
+}
+
+.forumHeroStats div {
+  min-height: 72px;
+  padding: 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.16);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.16);
+  text-align: center;
+}
+
+.forumHeroStats strong,
+.forumHeroStats span {
+  display: block;
+}
+
+.forumHeroStats strong {
+  color: var(--ink);
+  font-size: 24px;
+}
+
+.forumHeroStats span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.forumMainColumn {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.socialComposer {
+  padding: 16px;
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.08)),
+    rgba(255, 255, 255, 0.08);
+}
+
+.socialComposer .forumComposerTop {
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.socialComposer .forumAvatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+}
+
+.composerMain {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.socialComposer .forumComposerTop textarea {
+  min-height: 112px;
+  margin-top: 0;
+  border-radius: 18px;
+  border-color: rgba(var(--accent-rgb), 0.16);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(var(--accent-rgb), 0.05)),
+    rgba(255, 255, 255, 0.1);
+  font-size: 15px;
+}
+
+.socialComposer .forumComposerTop input {
+  min-height: 42px;
+  font-size: 14px;
+}
+
+.composerAttachmentGrid,
+.postMediaGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.composerAttachment,
+.postMediaTile {
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  min-height: 92px;
+  padding: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(var(--accent-rgb), 0.18), transparent 34%),
+    rgba(255, 255, 255, 0.16);
+  color: var(--accent);
+}
+
+.composerAttachment span,
+.postMediaTile span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.postMediaTile strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.socialFeed {
+  gap: 16px;
+}
+
+.socialPost {
+  grid-template-columns: 48px minmax(0, 1fr);
+  min-height: 0;
+  padding: 18px 18px 14px;
+  border-radius: 24px;
+  border-color: rgba(255, 255, 255, 0.14);
+  background:
+    radial-gradient(circle at 94% 0%, rgba(var(--accent-rgb), 0.14), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.06)),
+    rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 18px 58px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.socialPost .forumAvatar.small {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+}
+
+.socialPost .questionPostTop {
+  align-items: center;
+}
+
+.socialPost h3 {
+  font-size: clamp(20px, 1.7vw, 26px);
+  line-height: 1.18;
+}
+
+.socialPost p {
+  color: var(--text-soft);
+  font-size: 15px;
+}
+
+.socialActions {
+  padding-top: 8px;
+  border-top: 1px solid rgba(var(--accent-rgb), 0.12);
+}
+
+.socialActions button {
+  flex: 1 1 110px;
+  justify-content: center;
+  min-height: 38px;
+  border-radius: 14px;
+}
+
+.socialActions button.active {
+  border-color: rgba(var(--accent-rgb), 0.42);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.24), rgba(var(--accent-2-rgb), 0.1)),
+    rgba(255, 255, 255, 0.18);
+  color: var(--accent);
+}
+
+.commentComposer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.commentComposer input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 0;
+  outline: none;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 780;
+}
+
+.commentComposer input::placeholder {
+  color: rgba(57, 70, 94, 0.68);
+  opacity: 1;
+}
+
+.commentComposer button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 900;
+}
+
+.forumRightRail {
+  position: sticky;
+  top: 18px;
+  display: grid;
+  gap: 14px;
+}
+
+.forumRightRail section {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(var(--accent-rgb), 0.16);
+  border-radius: 22px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(var(--accent-rgb), 0.06)),
+    rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.forumRightRail h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 20px;
+  letter-spacing: 0;
+}
+
+.forumTopicChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.forumTopicChips button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.1);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.forumMiniList,
+.forumGuideList {
+  display: grid;
+  gap: 10px;
+}
+
+.forumMiniList div,
+.forumGuideList span {
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.forumMiniList strong,
+.forumMiniList span,
+.forumGuideList span {
+  display: block;
+}
+
+.forumMiniList strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.forumMiniList span,
+.forumGuideList span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 780;
+  line-height: 1.55;
+}
+
+.legacyQuestionGrid,
+.legacyFieldsTable {
+  display: none;
 }
 
 .questionCard h3 {
@@ -3066,6 +4072,97 @@ button {
   display: grid;
   gap: 10px;
   margin-top: 18px;
+}
+
+.fieldDictionaryBoard {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.fieldBoardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.fieldBoardHeader h3 {
+  margin: 4px 0 8px;
+  color: var(--ink);
+  font-size: clamp(28px, 3vw, 42px);
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.fieldBoardHeader span {
+  display: block;
+  max-width: 760px;
+  color: var(--muted);
+  font-weight: 780;
+  line-height: 1.65;
+}
+
+.fieldDictionaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.fieldDictionaryCard {
+  display: grid;
+  gap: 12px;
+  min-height: 206px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(var(--accent-rgb), 0.18), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(var(--accent-rgb), 0.08)),
+    var(--glass-soft);
+}
+
+.fieldDictionaryCard > div:first-child {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fieldDictionaryCard strong {
+  color: var(--ink);
+  font-size: 20px;
+  letter-spacing: 0;
+}
+
+.fieldDictionaryCard p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 760;
+  line-height: 1.65;
+}
+
+.fieldOptionChips {
+  display: flex;
+  align-content: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fieldOptionChips span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border-radius: 10px;
+  background: rgba(var(--accent-rgb), 0.1);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .fieldsTable div {
@@ -4274,11 +5371,18 @@ button {
 .mode-dark .timePickerPopover,
 .mode-dark .timePickerGrid button,
 .mode-dark .glassSelectOption,
+.mode-dark .todoFilter,
+.mode-dark .todoAlert,
 .mode-dark .lessonComposer input,
 .mode-dark .lessonComposer select,
 .mode-dark .managementForm input,
+.mode-dark .managementForm select,
 .mode-dark .managementForm textarea,
+.mode-dark .homeworkSubmitBox textarea,
 .mode-dark .paymentForm input,
+.mode-dark .reviewEditor,
+.mode-dark .reviewEditor input,
+.mode-dark .reviewEditor textarea,
 .mode-dark .scheduleMessage,
 .mode-dark .conflictHint,
 .mode-dark .rosterAddBlock,
@@ -4336,6 +5440,7 @@ button {
 .mode-dark .authTitle small,
 .mode-dark .lessonComposer label,
 .mode-dark .managementForm label,
+.mode-dark .reviewEditor label,
 .mode-dark .paymentForm label,
 .mode-dark .rangeTrigger small,
 .mode-dark .glassSelectText small,
@@ -4381,8 +5486,12 @@ button {
 .mode-dark .lessonComposer input,
 .mode-dark .lessonComposer select,
 .mode-dark .managementForm input,
+.mode-dark .managementForm select,
 .mode-dark .managementForm textarea,
+.mode-dark .homeworkSubmitBox textarea,
 .mode-dark .paymentForm input,
+.mode-dark .reviewEditor input,
+.mode-dark .reviewEditor textarea,
 .mode-dark .themePreset,
 .mode-dark .effectPreset,
 .mode-dark .detailPreset,
@@ -4441,16 +5550,147 @@ button {
   color: #fff;
 }
 
+.mode-dark .todoBell {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.mode-dark .todoBell.hasPending {
+  background:
+    linear-gradient(135deg, rgba(239, 68, 68, 0.34), rgba(var(--accent-rgb), 0.18)),
+    rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.mode-dark .todoFilter {
+  color: rgba(238, 244, 255, 0.88);
+}
+
+.mode-dark .todoFilter:hover,
+.mode-dark .todoFilter.active {
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.38), rgba(var(--accent-2-rgb), 0.18)),
+    rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.mode-dark .todoAlert {
+  color: #fff;
+}
+
+.mode-dark .focusNotice,
+.mode-dark .scheduleRow.focused,
+.mode-dark .reviewRow.focused,
+.mode-dark .timelineItem.focused {
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.34), rgba(var(--accent-2-rgb), 0.16)),
+    rgba(255, 255, 255, 0.14);
+  color: #fff;
+  outline-color: rgba(var(--accent-rgb), 0.78);
+  box-shadow:
+    0 24px 72px rgba(var(--accent-rgb), 0.26),
+    inset 5px 0 0 rgba(var(--accent-rgb), 0.92),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.mode-dark .todoAlert.urgent {
+  border-color: rgba(248, 113, 113, 0.42);
+  background:
+    linear-gradient(135deg, rgba(248, 113, 113, 0.24), rgba(var(--accent-rgb), 0.12)),
+    rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 18px 42px rgba(239, 68, 68, 0.16),
+    inset 4px 0 0 rgba(248, 113, 113, 0.82);
+}
+
 .mode-dark .navGroupTitle small,
 .mode-dark .navButton em,
 .mode-dark .todoItem > span,
 .mode-dark .lessonRow em,
-.mode-dark .chip,
-.mode-dark .statusTag {
+.mode-dark .chip {
   color: #fff;
   background:
     linear-gradient(135deg, rgba(var(--accent-rgb), 0.5), rgba(var(--accent-2-rgb), 0.24)),
     rgba(255, 255, 255, 0.08);
+}
+
+.mode-dark .statusTag {
+  border-color: rgba(var(--accent-rgb), 0.34);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.24), rgba(var(--accent-2-rgb), 0.1)),
+    rgba(255, 255, 255, 0.1);
+  color: rgba(244, 248, 255, 0.96);
+}
+
+.mode-dark .forumComposerTop input,
+.mode-dark .forumComposerTop textarea,
+.mode-dark .forumMetaGrid input,
+.mode-dark .forumHero,
+.mode-dark .forumHeroStats div,
+.mode-dark .forumRightRail section,
+.mode-dark .forumMiniList div,
+.mode-dark .forumGuideList span,
+.mode-dark .fieldDictionaryCard,
+.mode-dark .questionPost,
+.mode-dark .attachmentStrip,
+.mode-dark .forumActions button,
+.mode-dark .composerAttachment,
+.mode-dark .postMediaTile,
+.mode-dark .commentComposer,
+.mode-dark .commentComposer input {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mode-dark .forumComposerTop input::placeholder,
+.mode-dark .forumComposerTop textarea::placeholder,
+.mode-dark .forumMetaGrid input::placeholder,
+.mode-dark .commentComposer input::placeholder {
+  color: rgba(238, 244, 255, 0.58);
+}
+
+.mode-dark .forumComposerTop input,
+.mode-dark .forumComposerTop textarea,
+.mode-dark .forumMetaGrid input,
+.mode-dark .commentComposer input,
+.mode-dark .questionPostTop strong,
+.mode-dark .questionPost h3,
+.mode-dark .forumHero h2,
+.mode-dark .forumHeroStats strong,
+.mode-dark .forumRightRail h3,
+.mode-dark .forumMiniList strong,
+.mode-dark .postMediaTile strong,
+.mode-dark .fieldBoardHeader h3,
+.mode-dark .fieldDictionaryCard strong {
+  color: var(--ink);
+}
+
+.mode-dark .questionPostTop span,
+.mode-dark .questionPost p,
+.mode-dark .forumHero span,
+.mode-dark .forumHeroStats span,
+.mode-dark .forumMiniList span,
+.mode-dark .forumGuideList span,
+.mode-dark .fieldBoardHeader span,
+.mode-dark .fieldDictionaryCard p,
+.mode-dark .forumComposerActions > span,
+.mode-dark .attachmentStrip small,
+.mode-dark .composerAttachment span,
+.mode-dark .postMediaTile span {
+  color: var(--muted);
+}
+
+.mode-dark .socialActions button.active {
+  color: #fff;
+}
+
+.mode-dark .managementForm input::placeholder,
+.mode-dark .managementForm textarea::placeholder,
+.mode-dark .homeworkSubmitBox textarea::placeholder,
+.mode-dark .reviewEditor input::placeholder,
+.mode-dark .reviewEditor textarea::placeholder,
+.mode-dark .paymentForm input::placeholder {
+  color: rgba(238, 244, 255, 0.58);
 }
 
 .mode-dark .rangeCalendarPopover {
@@ -4485,6 +5725,20 @@ button {
   box-shadow:
     0 34px 92px rgba(0, 0, 0, 0.5),
     0 12px 36px rgba(var(--accent-rgb), 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+}
+
+.mode-dark .rosterAddBlock .glassSelectMenu {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  background:
+    radial-gradient(circle at 16% 8%, rgba(255, 255, 255, 0.16), transparent 30%),
+    radial-gradient(circle at 84% 10%, rgba(var(--accent-rgb), 0.26), transparent 32%),
+    linear-gradient(145deg, rgba(17, 25, 43, 0.99), rgba(11, 18, 32, 0.99)),
+    #101827 !important;
+  background-color: #101827 !important;
+  box-shadow:
+    0 34px 92px rgba(0, 0, 0, 0.56),
+    0 14px 42px rgba(var(--accent-rgb), 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
 }
 
@@ -5545,8 +6799,23 @@ button {
   .billingMetrics,
   .rosterSummary,
   .formPair,
-  .dateControl {
+  .dateControl,
+  .forumWorkbench,
+  .forumMetaGrid,
+  .fieldDictionaryGrid {
     grid-template-columns: 1fr;
+  }
+
+  .forumHero {
+    grid-template-columns: 1fr;
+  }
+
+  .forumHeroStats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .forumRightRail {
+    position: static;
   }
 
   .rosterStudentGrid,
@@ -5602,7 +6871,24 @@ button {
   .recordCard,
   .fieldsTable div,
   .permissionMatrix div,
+  .forumComposerTop,
+  .questionPost,
   .timelineItem {
+    grid-template-columns: 1fr;
+  }
+
+  .fieldBoardHeader {
+    display: grid;
+  }
+
+  .socialComposer .forumComposerTop,
+  .socialPost,
+  .commentComposer {
+    grid-template-columns: 1fr;
+  }
+
+  .composerAttachmentGrid,
+  .postMediaGrid {
     grid-template-columns: 1fr;
   }
 

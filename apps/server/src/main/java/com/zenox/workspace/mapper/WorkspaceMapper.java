@@ -1,5 +1,6 @@
 package com.zenox.workspace.mapper;
 
+import com.zenox.common.security.DataScope;
 import com.zenox.workspace.dto.BillingSummary;
 import com.zenox.workspace.dto.ClassGroupSummary;
 import com.zenox.workspace.dto.ClassRecordSummary;
@@ -11,6 +12,7 @@ import com.zenox.workspace.dto.StudentSummary;
 import com.zenox.workspace.dto.TodoSummary;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 @Mapper
@@ -34,12 +36,42 @@ public interface WorkspaceMapper {
       LEFT JOIN user_account ua
         ON ua.id = ct.teacher_user_id
        AND ua.deleted_at IS NULL
-      WHERE cg.tenant_id = #{tenantId}
+      WHERE cg.tenant_id = #{scope.tenantId}
         AND cg.deleted_at IS NULL
+        AND (
+          #{scope.admin} = TRUE
+          OR (#{scope.teacher} = TRUE AND EXISTS (
+            SELECT 1 FROM class_teacher scoped_ct
+            WHERE scoped_ct.class_group_id = cg.id
+              AND scoped_ct.teacher_user_id = #{scope.userId}
+              AND scoped_ct.deleted_at IS NULL
+          ))
+          OR (#{scope.student} = TRUE AND EXISTS (
+            SELECT 1 FROM class_member scoped_cm
+            JOIN student_profile scoped_sp
+              ON scoped_sp.id = scoped_cm.student_id
+             AND scoped_sp.user_id = #{scope.userId}
+             AND scoped_sp.deleted_at IS NULL
+            WHERE scoped_cm.class_group_id = cg.id
+              AND scoped_cm.deleted_at IS NULL
+          ))
+          OR (#{scope.parent} = TRUE AND EXISTS (
+            SELECT 1 FROM class_member scoped_cm
+            JOIN parent_student scoped_ps
+              ON scoped_ps.student_id = scoped_cm.student_id
+             AND scoped_ps.deleted_at IS NULL
+            JOIN parent_profile scoped_pp
+              ON scoped_pp.id = scoped_ps.parent_id
+             AND scoped_pp.user_id = #{scope.userId}
+             AND scoped_pp.deleted_at IS NULL
+            WHERE scoped_cm.class_group_id = cg.id
+              AND scoped_cm.deleted_at IS NULL
+          ))
+        )
       GROUP BY cg.id, cg.name, cg.subject, cg.grade, cg.description
       ORDER BY cg.created_at DESC
       """)
-  List<ClassGroupSummary> listClasses(Long tenantId);
+  List<ClassGroupSummary> listClasses(@Param("scope") DataScope scope);
 
   @Select("""
       SELECT
@@ -60,8 +92,30 @@ public interface WorkspaceMapper {
       LEFT JOIN class_group cg
         ON cg.id = cm.class_group_id
        AND cg.deleted_at IS NULL
-      WHERE sp.tenant_id = #{tenantId}
+      WHERE sp.tenant_id = #{scope.tenantId}
         AND sp.deleted_at IS NULL
+        AND (
+          #{scope.admin} = TRUE
+          OR (#{scope.teacher} = TRUE AND EXISTS (
+            SELECT 1 FROM class_member scoped_cm
+            JOIN class_teacher scoped_ct
+              ON scoped_ct.class_group_id = scoped_cm.class_group_id
+             AND scoped_ct.teacher_user_id = #{scope.userId}
+             AND scoped_ct.deleted_at IS NULL
+            WHERE scoped_cm.student_id = sp.id
+              AND scoped_cm.deleted_at IS NULL
+          ))
+          OR (#{scope.student} = TRUE AND sp.user_id = #{scope.userId})
+          OR (#{scope.parent} = TRUE AND EXISTS (
+            SELECT 1 FROM parent_student scoped_ps
+            JOIN parent_profile scoped_pp
+              ON scoped_pp.id = scoped_ps.parent_id
+             AND scoped_pp.user_id = #{scope.userId}
+             AND scoped_pp.deleted_at IS NULL
+            WHERE scoped_ps.student_id = sp.id
+              AND scoped_ps.deleted_at IS NULL
+          ))
+        )
       GROUP BY
         sp.id,
         sp.name,
@@ -74,7 +128,7 @@ public interface WorkspaceMapper {
         sp.weakness_note
       ORDER BY sp.created_at DESC
       """)
-  List<StudentSummary> listStudents(Long tenantId);
+  List<StudentSummary> listStudents(@Param("scope") DataScope scope);
 
   @Select("""
       SELECT
@@ -115,8 +169,49 @@ public interface WorkspaceMapper {
         ON fa.owner_type = 'HOMEWORK'
        AND fa.owner_id = h.id
        AND fa.deleted_at IS NULL
-      WHERE h.tenant_id = #{tenantId}
+      WHERE h.tenant_id = #{scope.tenantId}
         AND h.deleted_at IS NULL
+        AND (
+          #{scope.admin} = TRUE
+          OR (#{scope.teacher} = TRUE AND (
+            h.teacher_user_id = #{scope.userId}
+            OR EXISTS (
+              SELECT 1
+              FROM lesson scoped_l
+              JOIN class_teacher scoped_ct
+                ON scoped_ct.class_group_id = scoped_l.class_group_id
+               AND scoped_ct.teacher_user_id = #{scope.userId}
+               AND scoped_ct.deleted_at IS NULL
+              WHERE scoped_l.id = h.lesson_id
+                AND scoped_l.deleted_at IS NULL
+            )
+          ))
+          OR (#{scope.student} = TRUE AND EXISTS (
+            SELECT 1
+            FROM homework_visibility scoped_hv
+            JOIN student_profile scoped_sp
+              ON scoped_sp.id = scoped_hv.target_id
+             AND scoped_sp.user_id = #{scope.userId}
+             AND scoped_sp.deleted_at IS NULL
+            WHERE scoped_hv.homework_id = h.id
+              AND scoped_hv.target_type = 'STUDENT'
+              AND scoped_hv.deleted_at IS NULL
+          ))
+          OR (#{scope.parent} = TRUE AND EXISTS (
+            SELECT 1
+            FROM homework_visibility scoped_hv
+            JOIN parent_student scoped_ps
+              ON scoped_ps.student_id = scoped_hv.target_id
+             AND scoped_ps.deleted_at IS NULL
+            JOIN parent_profile scoped_pp
+              ON scoped_pp.id = scoped_ps.parent_id
+             AND scoped_pp.user_id = #{scope.userId}
+             AND scoped_pp.deleted_at IS NULL
+            WHERE scoped_hv.homework_id = h.id
+              AND scoped_hv.target_type = 'STUDENT'
+              AND scoped_hv.deleted_at IS NULL
+          ))
+        )
       GROUP BY
         h.id,
         h.lesson_id,
@@ -129,7 +224,7 @@ public interface WorkspaceMapper {
         h.status
       ORDER BY h.due_at ASC, h.created_at DESC
       """)
-  List<HomeworkSummary> listHomework(Long tenantId);
+  List<HomeworkSummary> listHomework(@Param("scope") DataScope scope);
 
   @Select("""
       SELECT
@@ -140,6 +235,8 @@ public interface WorkspaceMapper {
         h.title AS homeworkTitle,
         hs.status,
         hr.mistake_tags AS mistakeTags,
+        hr.needs_correction AS needsCorrection,
+        hr.excellent AS excellent,
         hr.comment,
         hr.score,
         hs.submitted_at AS submittedAt,
@@ -154,11 +251,39 @@ public interface WorkspaceMapper {
       LEFT JOIN homework_review hr
         ON hr.submission_id = hs.id
        AND hr.deleted_at IS NULL
-      WHERE hs.tenant_id = #{tenantId}
+      WHERE hs.tenant_id = #{scope.tenantId}
         AND hs.deleted_at IS NULL
+        AND (
+          #{scope.admin} = TRUE
+          OR (#{scope.teacher} = TRUE AND (
+            h.teacher_user_id = #{scope.userId}
+            OR hr.reviewer_user_id = #{scope.userId}
+            OR EXISTS (
+              SELECT 1
+              FROM lesson scoped_l
+              JOIN class_teacher scoped_ct
+                ON scoped_ct.class_group_id = scoped_l.class_group_id
+               AND scoped_ct.teacher_user_id = #{scope.userId}
+               AND scoped_ct.deleted_at IS NULL
+              WHERE scoped_l.id = h.lesson_id
+                AND scoped_l.deleted_at IS NULL
+            )
+          ))
+          OR (#{scope.student} = TRUE AND sp.user_id = #{scope.userId})
+          OR (#{scope.parent} = TRUE AND EXISTS (
+            SELECT 1
+            FROM parent_student scoped_ps
+            JOIN parent_profile scoped_pp
+              ON scoped_pp.id = scoped_ps.parent_id
+             AND scoped_pp.user_id = #{scope.userId}
+             AND scoped_pp.deleted_at IS NULL
+            WHERE scoped_ps.student_id = sp.id
+              AND scoped_ps.deleted_at IS NULL
+          ))
+        )
       ORDER BY COALESCE(hs.submitted_at, hs.created_at) DESC
       """)
-  List<ReviewSummary> listReviews(Long tenantId);
+  List<ReviewSummary> listReviews(@Param("scope") DataScope scope);
 
   @Select("""
       SELECT
@@ -168,12 +293,15 @@ public interface WorkspaceMapper {
         q.grade,
         q.knowledge_point AS knowledgePoint,
         q.difficulty,
+        q.content,
         q.scope,
         ua.display_name AS creatorName,
         COUNT(DISTINCT CASE WHEN qi.interaction_type = 'LIKE' THEN qi.id END) AS likeCount,
         COUNT(DISTINCT CASE WHEN qi.interaction_type = 'FAVORITE' THEN qi.id END) AS favoriteCount,
         COUNT(DISTINCT CASE WHEN qi.interaction_type = 'COMMENT' THEN qi.id END) AS commentCount,
-        COUNT(DISTINCT fa.id) AS attachmentCount
+        COUNT(DISTINCT fa.id) AS attachmentCount,
+        COUNT(DISTINCT CASE WHEN qi.interaction_type = 'LIKE' AND qi.user_id = #{scope.userId} THEN qi.id END) > 0 AS likedByMe,
+        COUNT(DISTINCT CASE WHEN qi.interaction_type = 'FAVORITE' AND qi.user_id = #{scope.userId} THEN qi.id END) > 0 AS favoriteByMe
       FROM question q
       JOIN user_account ua
         ON ua.id = q.creator_user_id
@@ -185,8 +313,13 @@ public interface WorkspaceMapper {
         ON fa.owner_type = 'QUESTION'
        AND fa.owner_id = q.id
        AND fa.deleted_at IS NULL
-      WHERE q.tenant_id = #{tenantId}
+      WHERE q.tenant_id = #{scope.tenantId}
         AND q.deleted_at IS NULL
+        AND (
+          #{scope.admin} = TRUE
+          OR q.creator_user_id = #{scope.userId}
+          OR q.scope = 'PUBLIC'
+        )
       GROUP BY
         q.id,
         q.title,
@@ -194,11 +327,12 @@ public interface WorkspaceMapper {
         q.grade,
         q.knowledge_point,
         q.difficulty,
+        q.content,
         q.scope,
         ua.display_name
       ORDER BY q.created_at DESC
       """)
-  List<QuestionSummary> listQuestions(Long tenantId);
+  List<QuestionSummary> listQuestions(@Param("scope") DataScope scope);
 
   @Select("""
       SELECT
@@ -221,11 +355,35 @@ public interface WorkspaceMapper {
       LEFT JOIN class_group cg
         ON cg.id = l.class_group_id
        AND cg.deleted_at IS NULL
-      WHERE la.tenant_id = #{tenantId}
+      WHERE la.tenant_id = #{scope.tenantId}
         AND la.deleted_at IS NULL
+        AND (
+          #{scope.admin} = TRUE
+          OR (#{scope.teacher} = TRUE AND (
+            l.teacher_user_id = #{scope.userId}
+            OR EXISTS (
+              SELECT 1
+              FROM class_teacher scoped_ct
+              WHERE scoped_ct.class_group_id = l.class_group_id
+                AND scoped_ct.teacher_user_id = #{scope.userId}
+                AND scoped_ct.deleted_at IS NULL
+            )
+          ))
+          OR (#{scope.student} = TRUE AND sp.user_id = #{scope.userId})
+          OR (#{scope.parent} = TRUE AND EXISTS (
+            SELECT 1
+            FROM parent_student scoped_ps
+            JOIN parent_profile scoped_pp
+              ON scoped_pp.id = scoped_ps.parent_id
+             AND scoped_pp.user_id = #{scope.userId}
+             AND scoped_pp.deleted_at IS NULL
+            WHERE scoped_ps.student_id = sp.id
+              AND scoped_ps.deleted_at IS NULL
+          ))
+        )
       ORDER BY l.starts_at DESC, sp.name ASC
       """)
-  List<ClassRecordSummary> listRecords(Long tenantId);
+  List<ClassRecordSummary> listRecords(@Param("scope") DataScope scope);
 
   @Select("""
       SELECT
@@ -242,11 +400,15 @@ public interface WorkspaceMapper {
         nt.status,
         nt.channel
       FROM notification_task nt
-      WHERE nt.tenant_id = #{tenantId}
+      WHERE nt.tenant_id = #{scope.tenantId}
         AND nt.deleted_at IS NULL
+        AND (
+          #{scope.admin} = TRUE
+          OR nt.target_user_id = #{scope.userId}
+        )
       ORDER BY nt.scheduled_at ASC
       """)
-  List<ReminderSummary> listReminders(Long tenantId);
+  List<ReminderSummary> listReminders(@Param("scope") DataScope scope);
 
   @Select("""
       SELECT
@@ -277,35 +439,80 @@ public interface WorkspaceMapper {
         GROUP BY billing_cycle_id
       ) payments
         ON payments.billing_cycle_id = bc.id
-      WHERE bc.tenant_id = #{tenantId}
+      WHERE bc.tenant_id = #{scope.tenantId}
         AND bc.deleted_at IS NULL
+        AND (
+          #{scope.admin} = TRUE
+          OR (#{scope.teacher} = TRUE AND EXISTS (
+            SELECT 1
+            FROM class_member scoped_cm
+            JOIN class_teacher scoped_ct
+              ON scoped_ct.class_group_id = scoped_cm.class_group_id
+             AND scoped_ct.teacher_user_id = #{scope.userId}
+             AND scoped_ct.deleted_at IS NULL
+            WHERE scoped_cm.student_id = sp.id
+              AND scoped_cm.deleted_at IS NULL
+          ))
+          OR (#{scope.student} = TRUE AND sp.user_id = #{scope.userId})
+          OR (#{scope.parent} = TRUE AND EXISTS (
+            SELECT 1
+            FROM parent_student scoped_ps
+            JOIN parent_profile scoped_pp
+              ON scoped_pp.id = scoped_ps.parent_id
+             AND scoped_pp.user_id = #{scope.userId}
+             AND scoped_pp.deleted_at IS NULL
+            WHERE scoped_ps.student_id = sp.id
+              AND scoped_ps.deleted_at IS NULL
+          ))
+        )
       ORDER BY bc.cycle_month DESC, sp.name ASC
       """)
-  List<BillingSummary> listBilling(Long tenantId);
+  List<BillingSummary> listBilling(@Param("scope") DataScope scope);
 
   @Select("""
-      SELECT category, label, detail, priority, dueAt
+      SELECT category, label, detail, priority, dueAt, targetType, targetId, action, status
       FROM (
         SELECT
           'lesson' AS category,
           CONCAT(DATE_FORMAT(l.starts_at, '%H:%i'), ' ', cg.name, ' 上课') AS label,
           CONCAT(COALESCE(l.subject, '课程'), ' · ', COALESCE(l.topic, '未填写主题')) AS detail,
           'high' AS priority,
-          l.starts_at AS dueAt
+          l.starts_at AS dueAt,
+          'LESSON' AS targetType,
+          l.id AS targetId,
+          'COMPLETE_LESSON' AS action,
+          l.status AS status
         FROM lesson l
         JOIN class_group cg
           ON cg.id = l.class_group_id
          AND cg.deleted_at IS NULL
-        WHERE l.tenant_id = #{tenantId}
+        WHERE l.tenant_id = #{scope.tenantId}
           AND l.deleted_at IS NULL
           AND l.status = 'SCHEDULED'
+          AND (
+            #{scope.admin} = TRUE
+            OR (#{scope.teacher} = TRUE AND (
+              l.teacher_user_id = #{scope.userId}
+              OR EXISTS (
+                SELECT 1
+                FROM class_teacher scoped_ct
+                WHERE scoped_ct.class_group_id = l.class_group_id
+                  AND scoped_ct.teacher_user_id = #{scope.userId}
+                  AND scoped_ct.deleted_at IS NULL
+              )
+            ))
+          )
         UNION ALL
         SELECT
           'homework' AS category,
           CONCAT(sp.name, ' 作业待批改') AS label,
           CONCAT(h.title, ' · 已提交 ', DATE_FORMAT(hs.submitted_at, '%m/%d %H:%i')) AS detail,
           'medium' AS priority,
-          COALESCE(hs.submitted_at, hs.created_at) AS dueAt
+          COALESCE(hs.submitted_at, hs.created_at) AS dueAt,
+          'HOMEWORK_SUBMISSION' AS targetType,
+          hs.id AS targetId,
+          'REVIEW_HOMEWORK' AS action,
+          hs.status AS status
         FROM homework_submission hs
         JOIN homework h
           ON h.id = hs.homework_id
@@ -316,16 +523,36 @@ public interface WorkspaceMapper {
         LEFT JOIN homework_review hr
           ON hr.submission_id = hs.id
          AND hr.deleted_at IS NULL
-        WHERE hs.tenant_id = #{tenantId}
+        WHERE hs.tenant_id = #{scope.tenantId}
           AND hs.deleted_at IS NULL
           AND hr.id IS NULL
+          AND (
+            #{scope.admin} = TRUE
+            OR (#{scope.teacher} = TRUE AND (
+              h.teacher_user_id = #{scope.userId}
+              OR EXISTS (
+                SELECT 1
+                FROM lesson scoped_l
+                JOIN class_teacher scoped_ct
+                  ON scoped_ct.class_group_id = scoped_l.class_group_id
+                 AND scoped_ct.teacher_user_id = #{scope.userId}
+                 AND scoped_ct.deleted_at IS NULL
+                WHERE scoped_l.id = h.lesson_id
+                  AND scoped_l.deleted_at IS NULL
+              )
+            ))
+          )
         UNION ALL
         SELECT
           'billing' AS category,
           CONCAT(sp.name, ' 账单待收款') AS label,
           CONCAT('剩余 ¥', FORMAT(bc.total_amount - COALESCE(SUM(pr.amount), 0), 2)) AS detail,
           'high' AS priority,
-          CAST(CONCAT(LAST_DAY(bc.cycle_month), ' 20:00:00') AS DATETIME) AS dueAt
+          CAST(CONCAT(LAST_DAY(bc.cycle_month), ' 20:00:00') AS DATETIME) AS dueAt,
+          'BILLING_CYCLE' AS targetType,
+          bc.id AS targetId,
+          'RECORD_PAYMENT' AS action,
+          bc.status AS status
         FROM billing_cycle bc
         JOIN student_profile sp
           ON sp.id = bc.student_id
@@ -333,8 +560,21 @@ public interface WorkspaceMapper {
         LEFT JOIN payment_record pr
           ON pr.billing_cycle_id = bc.id
          AND pr.deleted_at IS NULL
-        WHERE bc.tenant_id = #{tenantId}
+        WHERE bc.tenant_id = #{scope.tenantId}
           AND bc.deleted_at IS NULL
+          AND (
+            #{scope.admin} = TRUE
+            OR (#{scope.teacher} = TRUE AND EXISTS (
+              SELECT 1
+              FROM class_member scoped_cm
+              JOIN class_teacher scoped_ct
+                ON scoped_ct.class_group_id = scoped_cm.class_group_id
+               AND scoped_ct.teacher_user_id = #{scope.userId}
+               AND scoped_ct.deleted_at IS NULL
+              WHERE scoped_cm.student_id = sp.id
+                AND scoped_cm.deleted_at IS NULL
+            ))
+          )
         GROUP BY bc.id, sp.name, bc.total_amount, bc.cycle_month
         HAVING bc.total_amount - COALESCE(SUM(pr.amount), 0) > 0
         UNION ALL
@@ -348,14 +588,22 @@ public interface WorkspaceMapper {
           nt.title AS label,
           COALESCE(nt.content, '系统内提醒') AS detail,
           'low' AS priority,
-          nt.scheduled_at AS dueAt
+          nt.scheduled_at AS dueAt,
+          'NOTIFICATION' AS targetType,
+          nt.id AS targetId,
+          'OPEN_REMINDER' AS action,
+          nt.status AS status
         FROM notification_task nt
-        WHERE nt.tenant_id = #{tenantId}
+        WHERE nt.tenant_id = #{scope.tenantId}
           AND nt.deleted_at IS NULL
           AND nt.status = 'PENDING'
+          AND (
+            #{scope.admin} = TRUE
+            OR nt.target_user_id = #{scope.userId}
+          )
       ) todo_source
       ORDER BY dueAt ASC
       LIMIT 12
       """)
-  List<TodoSummary> listTodos(Long tenantId);
+  List<TodoSummary> listTodos(@Param("scope") DataScope scope);
 }

@@ -7,6 +7,10 @@ public record TodoSummary(
     String label,
     String detail,
     String priority,
-    LocalDateTime dueAt
+    LocalDateTime dueAt,
+    String targetType,
+    Long targetId,
+    String action,
+    String status
 ) {
 }

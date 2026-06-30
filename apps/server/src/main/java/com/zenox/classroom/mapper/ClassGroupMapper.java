@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.zenox.classroom.dto.ClassMemberSummary;
 import com.zenox.classroom.dto.ClassTeacherSummary;
 import com.zenox.classroom.entity.ClassGroup;
+import com.zenox.common.security.DataScope;
 import java.util.List;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -25,11 +26,21 @@ public interface ClassGroupMapper extends BaseMapper<ClassGroup> {
         updated_at AS updatedAt,
         deleted_at AS deletedAt
       FROM class_group
-      WHERE tenant_id = #{tenantId}
+      WHERE tenant_id = #{scope.tenantId}
         AND deleted_at IS NULL
+        AND (
+          #{scope.admin} = TRUE
+          OR (#{scope.teacher} = TRUE AND EXISTS (
+            SELECT 1
+            FROM class_teacher ct
+            WHERE ct.class_group_id = class_group.id
+              AND ct.teacher_user_id = #{scope.userId}
+              AND ct.deleted_at IS NULL
+          ))
+        )
       ORDER BY created_at DESC
       """)
-  List<ClassGroup> listByTenantId(Long tenantId);
+  List<ClassGroup> listByScope(@Param("scope") DataScope scope);
 
   @Select("""
       SELECT
@@ -49,6 +60,35 @@ public interface ClassGroupMapper extends BaseMapper<ClassGroup> {
       LIMIT 1
       """)
   ClassGroup findByIdAndTenantId(@Param("classGroupId") Long classGroupId, @Param("tenantId") Long tenantId);
+
+  @Select("""
+      SELECT
+        id,
+        tenant_id AS tenantId,
+        name,
+        subject,
+        grade,
+        description,
+        created_at AS createdAt,
+        updated_at AS updatedAt,
+        deleted_at AS deletedAt
+      FROM class_group
+      WHERE id = #{classGroupId}
+        AND tenant_id = #{scope.tenantId}
+        AND deleted_at IS NULL
+        AND (
+          #{scope.admin} = TRUE
+          OR (#{scope.teacher} = TRUE AND EXISTS (
+            SELECT 1
+            FROM class_teacher ct
+            WHERE ct.class_group_id = class_group.id
+              AND ct.teacher_user_id = #{scope.userId}
+              AND ct.deleted_at IS NULL
+          ))
+        )
+      LIMIT 1
+      """)
+  ClassGroup findByIdAndScope(@Param("classGroupId") Long classGroupId, @Param("scope") DataScope scope);
 
   @Select("""
       SELECT

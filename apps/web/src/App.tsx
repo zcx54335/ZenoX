@@ -100,7 +100,7 @@ type AuthUser = {
   accessCodes: string[];
   accessToken?: string;
   avatar: string;
-  homePath: string;
+  homePath: ModuleKey;
   id?: number;
   label: string;
   name: string;
@@ -214,9 +214,11 @@ type ServerHomework = {
 
 type ServerReview = {
   comment?: string;
+  excellent?: boolean;
   homeworkId: string;
   homeworkTitle: string;
   mistakeTags?: string;
+  needsCorrection?: boolean;
   reviewedAt?: string;
   score?: number;
   status: string;
@@ -229,12 +231,15 @@ type ServerReview = {
 type ServerQuestion = {
   attachmentCount?: number;
   commentCount?: number;
+  content?: string;
   creatorName?: string;
   difficulty?: string;
+  favoriteByMe?: boolean;
   favoriteCount?: number;
   grade?: string;
   id: string;
   knowledgePoint?: string;
+  likedByMe?: boolean;
   likeCount?: number;
   scope?: string;
   subject?: string;
@@ -301,11 +306,30 @@ type BillingCycleDetail = ServerBilling & {
 };
 
 type ServerTodo = {
+  action?: string;
   category: string;
   detail?: string;
   dueAt?: string;
   label: string;
   priority: "high" | "medium" | "low";
+  status?: string;
+  targetId?: number | string;
+  targetType?: string;
+};
+
+type TodoCategoryTab = {
+  count: number;
+  key: string;
+  label: string;
+};
+
+type TodoFocusTarget = {
+  action?: string;
+  category: string;
+  label: string;
+  moduleKey: ModuleKey;
+  targetId?: string;
+  targetType?: string;
 };
 
 type WorkspaceData = {
@@ -336,7 +360,7 @@ const emptyWorkspaceData: WorkspaceData = {
 
 const mockAccounts: AuthUser[] = [
   {
-    accessCodes: ["dashboard:view", "lesson:view", "lesson:manage", "student:view", "student:manage", "teacher:manage", "homework:view", "homework:manage", "homework:review", "billing:export", "system:admin"],
+    accessCodes: ["dashboard:view", "lesson:view", "lesson:manage", "student:view", "student:manage", "teacher:manage", "homework:view", "homework:manage", "homework:review", "billing:view", "billing:manage", "billing:export", "system:admin"],
     avatar: "赵",
     homePath: "dashboard",
     label: "管理员 / 工作室负责人",
@@ -424,6 +448,56 @@ const todayLessons = [
   ["19:00", "高一物理班", "牛顿定律", "待提醒"],
 ] as const;
 
+const todoCategoryOrder = ["lesson", "homework", "billing", "record", "reminder", "question", "system"];
+
+function todoCategoryLabel(category: string) {
+  const labels: Record<string, string> = {
+    all: "全部",
+    billing: "收费",
+    homework: "作业",
+    lesson: "上课",
+    question: "题库",
+    record: "记录",
+    reminder: "提醒",
+    system: "系统",
+  };
+  return labels[category] ?? category;
+}
+
+function moduleKeyForTodo(item: ServerTodo): ModuleKey {
+  if (item.targetType === "LESSON") {
+    return "schedule";
+  }
+  if (item.targetType === "HOMEWORK_SUBMISSION") {
+    return "review";
+  }
+  if (item.targetType === "BILLING_CYCLE") {
+    return "billing";
+  }
+  if (item.targetType === "NOTIFICATION") {
+    return "reminders";
+  }
+  if (item.category === "lesson") {
+    return "schedule";
+  }
+  if (item.category === "homework") {
+    return item.action === "REVIEW_HOMEWORK" ? "review" : "homework";
+  }
+  if (item.category === "billing") {
+    return "billing";
+  }
+  if (item.category === "record") {
+    return "records";
+  }
+  if (item.category === "reminder" || item.category === "system") {
+    return "reminders";
+  }
+  if (item.category === "question") {
+    return "forum";
+  }
+  return "dashboard";
+}
+
 const stats = [
   ["今日课程", "3", "手动排课"],
   ["待办事项", "4", "需要处理"],
@@ -491,6 +565,45 @@ const customFields = [
   ["课程记录", "课堂表现、下次计划、家长摘要", "老师/家长可见"],
   ["作业批改", "错因标签、讲评优先级", "老师/学生可见"],
 ] as const;
+
+const fieldDictionaries = [
+  {
+    description: "学生、班级、课程和作业发布时都从这里选择，避免手填导致统计混乱。",
+    items: ["数学", "物理", "化学", "英语", "语文", "生物", "历史"],
+    owner: "全局可用",
+    title: "科目字典",
+  },
+  {
+    description: "用于学员档案、班级分层、题库筛选和作业适配。",
+    items: ["小学", "初一", "初二", "初三", "高一", "高二", "高三"],
+    owner: "教务维护",
+    title: "年级字典",
+  },
+  {
+    description: "作业批改直接点选错因，后续能沉淀学情画像和错题趋势。",
+    items: ["审题", "计算", "步骤", "概念", "模型", "书写", "时间分配"],
+    owner: "老师可见",
+    title: "错因标签",
+  },
+  {
+    description: "排课、结算和上课记录统一使用，减少线上线下口径不一致。",
+    items: ["线上", "线下", "到店", "上门", "补课", "试听"],
+    owner: "排课可用",
+    title: "课程方式",
+  },
+  {
+    description: "收款记录、月结账单、财务导出保持相同枚举。",
+    items: ["微信", "支付宝", "银行卡", "现金", "对公转账"],
+    owner: "财务可用",
+    title: "支付方式",
+  },
+  {
+    description: "作业、课程、提醒、账单统一状态展示，后台权限控制可配置。",
+    items: ["待处理", "进行中", "已完成", "需订正", "已取消", "已归档"],
+    owner: "系统字段",
+    title: "状态枚举",
+  },
+];
 
 const accentOptions: Array<{ key: Accent; label: string }> = [
   { key: "blue", label: "海盐蓝" },
@@ -913,6 +1026,24 @@ async function apiSend<T>(path: string, method: "POST" | "PUT" | "PATCH", access
   return payload.data;
 }
 
+async function apiSendForm<T>(path: string, accessToken: string | undefined, body: FormData) {
+  if (!accessToken) {
+    throw new Error("登录已过期，请重新登录。");
+  }
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    body,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    method: "POST",
+  });
+  const payload = (await response.json()) as ApiResponse<T>;
+  if (!response.ok || payload.code !== 0) {
+    throw new Error(payload.message || "请求失败");
+  }
+  return payload.data;
+}
+
 async function apiDelete<T>(path: string, accessToken?: string) {
   if (!accessToken) {
     throw new Error("登录已过期，请重新登录。");
@@ -1028,6 +1159,12 @@ function toDateInputValue(date: Date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function toDateTimeInputValue(date: Date) {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${toDateInputValue(date)}T${hours}:${minutes}`;
 }
 
 function addDays(dateValue: string, days: number) {
@@ -1446,14 +1583,18 @@ function GlassSelect({
 
 function ModuleWorkspace({
   authSession,
+  focusTarget,
   language,
   module,
+  onFocusTargetHandled,
   onWorkspaceDataChange,
   workspaceData,
 }: {
   authSession: AuthUser;
+  focusTarget: TodoFocusTarget | null;
   language: Preferences["language"];
   module: ModuleItem;
+  onFocusTargetHandled: () => void;
   onWorkspaceDataChange: (data: WorkspaceData) => void;
   workspaceData: WorkspaceData;
 }) {
@@ -1491,11 +1632,15 @@ function ModuleWorkspace({
   const [lessonDateCalendarOpen, setLessonDateCalendarOpen] = useState(false);
   const [lessonDatePickerMonth, setLessonDatePickerMonth] = useState(todayDate);
   const [openTimePicker, setOpenTimePicker] = useState<"start" | "end" | null>(null);
-  const [openSelect, setOpenSelect] = useState<"class" | "delivery" | "rosterStudent" | "rosterTeacher" | "paymentMethod" | null>(null);
+  const [openSelect, setOpenSelect] = useState<"class" | "delivery" | "homeworkClass" | "homeworkLesson" | "homeworkStudent" | "rosterStudent" | "rosterTeacher" | "paymentMethod" | null>(null);
   const [exporting, setExporting] = useState(false);
   const [scheduleMessage, setScheduleMessage] = useState("");
   const [scheduleSubmitting, setScheduleSubmitting] = useState(false);
   const [selectedScheduleDate, setSelectedScheduleDate] = useState(toDateInputValue(new Date()));
+  const [focusMessage, setFocusMessage] = useState("");
+  const [focusedLessonId, setFocusedLessonId] = useState<string | null>(null);
+  const [focusedReminderId, setFocusedReminderId] = useState<string | null>(null);
+  const [focusedReviewId, setFocusedReviewId] = useState<string | null>(null);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [classRoster, setClassRoster] = useState<ClassRosterResponse | null>(null);
   const [rosterLoading, setRosterLoading] = useState(false);
@@ -1528,6 +1673,39 @@ function ModuleWorkspace({
   const [teacherMessage, setTeacherMessage] = useState("");
   const [teacherLoading, setTeacherLoading] = useState(false);
   const [teacherSubmitting, setTeacherSubmitting] = useState(false);
+  const [homeworkForm, setHomeworkForm] = useState({
+    classGroupId: "",
+    content: "",
+    dueAt: toDateTimeInputValue(new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)),
+    lessonId: "",
+    publishNow: true,
+    studentId: "",
+    title: "",
+  });
+  const [homeworkMessage, setHomeworkMessage] = useState("");
+  const [homeworkSubmitting, setHomeworkSubmitting] = useState(false);
+  const [submissionDrafts, setSubmissionDrafts] = useState<Record<string, string>>({});
+  const [reviewDrafts, setReviewDrafts] = useState<Record<string, {
+    comment: string;
+    excellent: boolean;
+    mistakeTags: string;
+    needsCorrection: boolean;
+    score: string;
+  }>>({});
+  const [forumDraft, setForumDraft] = useState({
+    content: "",
+    grade: "",
+    scope: "PUBLIC",
+    subject: "",
+    title: "",
+  });
+  const [forumFiles, setForumFiles] = useState<string[]>([]);
+  const [forumFileObjects, setForumFileObjects] = useState<File[]>([]);
+  const [forumComposerOpen, setForumComposerOpen] = useState(false);
+  const [localForumPosts, setLocalForumPosts] = useState<ServerQuestion[]>([]);
+  const [likedQuestionIds, setLikedQuestionIds] = useState<Set<string>>(new Set());
+  const [favoriteQuestionIds, setFavoriteQuestionIds] = useState<Set<string>>(new Set());
+  const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [selectedBillingId, setSelectedBillingId] = useState<string | null>(null);
   const [billingDetail, setBillingDetail] = useState<BillingCycleDetail | null>(null);
   const [billingLoading, setBillingLoading] = useState(false);
@@ -1597,6 +1775,39 @@ function ModuleWorkspace({
     ],
     [classRoster?.availableTeachers],
   );
+  const homeworkClassOptions = useMemo<GlassSelectOption[]>(
+    () => [
+      { description: "发布给班级全员", label: "不选择班级", value: "" },
+      ...data.classes.map((classGroup) => ({
+        description: `${classGroup.grade ?? "未设置年级"} · ${classGroup.subject ?? "未设置科目"}`,
+        label: classGroup.name,
+        value: String(classGroup.id),
+      })),
+    ],
+    [data.classes],
+  );
+  const homeworkStudentOptions = useMemo<GlassSelectOption[]>(
+    () => [
+      { description: homeworkForm.classGroupId ? "已按班级发布" : "发布给单个学生", label: homeworkForm.classGroupId ? "由班级决定" : "不选择学生", value: "" },
+      ...(!homeworkForm.classGroupId ? data.students.map((student) => ({
+        description: `${student.grade ?? "未设置年级"} · ${student.subject ?? "未设置科目"}`,
+        label: student.name,
+        value: String(student.id),
+      })) : []),
+    ],
+    [data.students, homeworkForm.classGroupId],
+  );
+  const homeworkLessonOptions = useMemo<GlassSelectOption[]>(
+    () => [
+      { description: "不从课程自动推导班级", label: "不关联课程", value: "" },
+      ...data.lessons.map((lesson) => ({
+        description: `${formatDateTime(lesson.startsAt)} · ${lesson.subject ?? "课程"}`,
+        label: lesson.classGroupName ?? classNameById.get(lesson.classGroupId ?? "") ?? "未绑定班级",
+        value: String(lesson.id),
+      })),
+    ],
+    [classNameById, data.lessons],
+  );
   const deliveryOptions: GlassSelectOption[] = [
     { description: "腾讯会议 / 在线课堂", label: "线上", value: "ONLINE" },
     { description: "到店 / 上门授课", label: "线下", value: "OFFLINE" },
@@ -1610,7 +1821,7 @@ function ModuleWorkspace({
     setOpenSelect(null);
   };
 
-  const openOnlySelect = (select: "class" | "delivery" | "rosterStudent" | "rosterTeacher") => {
+  const openOnlySelect = (select: "class" | "delivery" | "homeworkClass" | "homeworkLesson" | "homeworkStudent" | "rosterStudent" | "rosterTeacher") => {
     setExportCalendarOpen(false);
     setScheduleCalendarOpen(false);
     setLessonDateCalendarOpen(false);
@@ -1657,6 +1868,10 @@ function ModuleWorkspace({
   };
 
   const handleAddClassStudent = async (confirmCrossClass = false) => {
+    if (!authSession.accessCodes.includes("student:manage")) {
+      setRosterMessage("当前账号没有维护班级成员权限。");
+      return;
+    }
     if (!selectedClassId || !selectedStudentToAdd) {
       setRosterMessage("请先选择班级和学生。");
       return;
@@ -1687,6 +1902,10 @@ function ModuleWorkspace({
   };
 
   const handleRemoveClassStudent = async (studentId: string) => {
+    if (!authSession.accessCodes.includes("student:manage")) {
+      setRosterMessage("当前账号没有维护班级成员权限。");
+      return;
+    }
     if (!selectedClassId) {
       return;
     }
@@ -1704,6 +1923,10 @@ function ModuleWorkspace({
   };
 
   const handleAddClassTeacher = async () => {
+    if (!authSession.accessCodes.includes("student:manage")) {
+      setRosterMessage("当前账号没有维护班级成员权限。");
+      return;
+    }
     if (!selectedClassId || !selectedTeacherToAdd) {
       setRosterMessage("请先选择班级和老师。");
       return;
@@ -1727,6 +1950,10 @@ function ModuleWorkspace({
   };
 
   const handleRemoveClassTeacher = async (teacherUserId: string) => {
+    if (!authSession.accessCodes.includes("student:manage")) {
+      setRosterMessage("当前账号没有维护班级成员权限。");
+      return;
+    }
     if (!selectedClassId) {
       return;
     }
@@ -1835,6 +2062,216 @@ function ModuleWorkspace({
     }
   };
 
+  const handleCreateHomework = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!homeworkForm.title.trim()) {
+      setHomeworkMessage("请填写作业标题。");
+      return;
+    }
+    if (!homeworkForm.classGroupId && !homeworkForm.studentId && !homeworkForm.lessonId) {
+      setHomeworkMessage("请选择班级、学生或关联课程。");
+      return;
+    }
+    setHomeworkSubmitting(true);
+    setHomeworkMessage("");
+    try {
+      await apiSend<ServerHomework>("/api/homework", "POST", authSession.accessToken, {
+        classGroupId: homeworkForm.classGroupId || undefined,
+        content: homeworkForm.content,
+        dueAt: homeworkForm.dueAt ? `${homeworkForm.dueAt}:00` : undefined,
+        lessonId: homeworkForm.lessonId || undefined,
+        publishNow: homeworkForm.publishNow,
+        studentIds: homeworkForm.studentId ? [homeworkForm.studentId] : [],
+        title: homeworkForm.title,
+      });
+      setHomeworkForm((current) => ({
+        ...current,
+        content: "",
+        lessonId: "",
+        studentId: "",
+        title: "",
+      }));
+      await refreshScheduleData();
+      setHomeworkMessage("作业已发布，并写入学生可见范围。");
+    } catch (error) {
+      setHomeworkMessage(error instanceof Error ? error.message : "发布作业失败");
+    } finally {
+      setHomeworkSubmitting(false);
+    }
+  };
+
+  const handleSubmitHomework = async (homework: ServerHomework) => {
+    const content = (submissionDrafts[homework.id] ?? "").trim();
+    if (!content) {
+      setHomeworkMessage("请先填写提交说明。");
+      return;
+    }
+    setHomeworkSubmitting(true);
+    setHomeworkMessage("");
+    try {
+      await apiSend<number>(
+        `/api/homework/${homework.id}/submissions`,
+        "POST",
+        authSession.accessToken,
+        {
+          content,
+          studentId: homework.studentId || undefined,
+        },
+      );
+      setSubmissionDrafts((current) => ({ ...current, [homework.id]: "" }));
+      await refreshScheduleData();
+      setHomeworkMessage("作业提交已记录，老师可以在批改反馈中处理。");
+    } catch (error) {
+      setHomeworkMessage(error instanceof Error ? error.message : "提交作业失败");
+    } finally {
+      setHomeworkSubmitting(false);
+    }
+  };
+
+  const handleReviewSubmission = async (item: ServerReview) => {
+    const draft = reviewDrafts[item.submissionId] ?? {
+      comment: item.comment ?? "",
+      excellent: Boolean(item.excellent),
+      mistakeTags: item.mistakeTags ?? "",
+      needsCorrection: Boolean(item.needsCorrection),
+      score: item.score === undefined ? "" : String(item.score),
+    };
+    if (!draft.comment.trim()) {
+      setFocusMessage("请先填写批改评语。");
+      return;
+    }
+    const score = draft.score ? Number(draft.score) : undefined;
+    if (score !== undefined && (!Number.isFinite(score) || score < 0 || score > 100)) {
+      setFocusMessage("分数需要在 0 到 100 之间。");
+      return;
+    }
+    setHomeworkSubmitting(true);
+    setFocusMessage("");
+    try {
+      await apiSend<number>(
+        `/api/homework/submissions/${item.submissionId}/review`,
+        "POST",
+        authSession.accessToken,
+        {
+          comment: draft.comment,
+          excellent: draft.excellent,
+          mistakeTags: draft.mistakeTags,
+          needsCorrection: draft.needsCorrection,
+          score,
+        },
+      );
+      await refreshScheduleData();
+      setFocusedReviewId(item.submissionId);
+      setFocusMessage(`已完成批改：${item.studentName} · ${item.homeworkTitle}`);
+    } catch (error) {
+      setFocusMessage(error instanceof Error ? error.message : "批改作业失败");
+    } finally {
+      setHomeworkSubmitting(false);
+    }
+  };
+
+  const handlePublishForumPost = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!forumDraft.title.trim() && !forumDraft.content.trim() && forumFiles.length === 0) {
+      setFocusMessage("请先写一点内容，或选择图片/文件。");
+      return;
+    }
+    try {
+      const payload = new FormData();
+      payload.append("payload", new Blob([JSON.stringify({
+        content: forumDraft.content,
+        grade: forumDraft.grade,
+        scope: forumDraft.scope,
+        subject: forumDraft.subject,
+        title: forumDraft.title,
+      })], { type: "application/json" }));
+      forumFileObjects.forEach((file) => payload.append("files", file));
+      await apiSendForm<ServerQuestion>("/api/questions", authSession.accessToken, payload);
+      setLocalForumPosts([]);
+      setForumDraft({ content: "", grade: "", scope: "PUBLIC", subject: "", title: "" });
+      setForumFiles([]);
+      setForumFileObjects([]);
+      setForumComposerOpen(false);
+      await refreshScheduleData();
+      setFocusMessage("内容已发布，并保存到数据库。");
+      return;
+    } catch (error) {
+      setFocusMessage(error instanceof Error ? error.message : "发布失败");
+      return;
+    }
+    const title = forumDraft.title.trim() || forumDraft.content.trim().slice(0, 28) || "新的讨论";
+    const post: ServerQuestion = {
+      attachmentCount: forumFiles.length,
+      commentCount: 0,
+      content: forumDraft.content,
+      creatorName: authSession.name,
+      difficulty: "DISCUSSION",
+      favoriteCount: 0,
+      grade: forumDraft.grade || "未分年级",
+      id: `local-${Date.now()}`,
+      knowledgePoint: forumFiles.length > 0 ? forumFiles.join("、") : "自由讨论",
+      likeCount: 0,
+      scope: forumDraft.scope,
+      subject: forumDraft.subject || "综合",
+      title,
+    };
+    setLocalForumPosts((current) => [post, ...current]);
+    setForumDraft({ content: "", grade: "", scope: "PUBLIC", subject: "", title: "" });
+    setForumFiles([]);
+    setFocusMessage("内容已发布到当前信息流。");
+  };
+
+  const toggleQuestionReaction = (questionId: string, type: "favorite" | "like") => {
+    const update = (current: Set<string>) => {
+      const next = new Set(current);
+      if (next.has(questionId)) {
+        next.delete(questionId);
+      } else {
+        next.add(questionId);
+      }
+      return next;
+    };
+    if (type === "like") {
+      setLikedQuestionIds(update);
+      return;
+    }
+    setFavoriteQuestionIds(update);
+  };
+
+  const submitQuestionComment = (questionId: string) => {
+    const content = (commentDrafts[questionId] ?? "").trim();
+    if (!content) {
+      setFocusMessage("请先写评论内容。");
+      return;
+    }
+    setCommentDrafts((current) => ({ ...current, [questionId]: "" }));
+    setFocusMessage("评论已记录在当前页面，后续会接入评论入库。");
+  };
+
+  const handleQuestionReaction = async (questionId: string, type: "favorite" | "like") => {
+    try {
+      await apiSend<void>(`/api/questions/${questionId}/${type === "like" ? "like" : "favorite"}`, "POST", authSession.accessToken);
+      await refreshScheduleData();
+    } catch (error) {
+      setFocusMessage(error instanceof Error ? error.message : "操作失败");
+    }
+  };
+
+  const handleQuestionComment = async (questionId: string) => {
+    const content = (commentDrafts[questionId] ?? "").trim();
+    if (!content) {
+      setFocusMessage("请先写评论内容。");
+      return;
+    }
+    try {
+      await apiSend<number>(`/api/questions/${questionId}/comments`, "POST", authSession.accessToken, { content });
+      setCommentDrafts((current) => ({ ...current, [questionId]: "" }));
+      await refreshScheduleData();
+    } catch (error) {
+      setFocusMessage(error instanceof Error ? error.message : "评论失败");
+    }
+  };
+
   const refreshBillingDetailAndWorkspace = async (detail?: BillingCycleDetail) => {
     if (detail) {
       setBillingDetail(detail);
@@ -1849,6 +2286,10 @@ function ModuleWorkspace({
   const handleRecordPayment = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedBillingId) {
+      return;
+    }
+    if (!authSession.accessCodes.includes("billing:manage")) {
+      setBillingMessage("当前账号没有记录收款权限。");
       return;
     }
     const amount = Number(paymentForm.amount);
@@ -1880,6 +2321,10 @@ function ModuleWorkspace({
   };
 
   const handleUndoPayment = async (paymentId: string) => {
+    if (!authSession.accessCodes.includes("billing:manage")) {
+      setBillingMessage("当前账号没有撤销收款权限。");
+      return;
+    }
     setBillingSubmitting(true);
     setBillingMessage("");
     try {
@@ -1895,6 +2340,10 @@ function ModuleWorkspace({
 
   const handleDownloadBillingStatement = async () => {
     if (!selectedBillingId) {
+      return;
+    }
+    if (!authSession.accessCodes.includes("billing:export")) {
+      setBillingMessage("当前账号没有下载月结单权限。");
       return;
     }
     setBillingSubmitting(true);
@@ -1953,6 +2402,54 @@ function ModuleWorkspace({
       setSelectedBillingId(data.billing[0].cycleId);
     }
   }, [data.billing, module.key, selectedBillingId]);
+
+  useEffect(() => {
+    if (!focusTarget || focusTarget.moduleKey !== module.key) {
+      return;
+    }
+    const targetId = focusTarget.targetId;
+    if (focusTarget.targetType === "LESSON" && targetId) {
+      const lesson = data.lessons.find((item) => String(item.id) === targetId);
+      if (lesson) {
+        const lessonDate = toDateInputValue(new Date(lesson.startsAt));
+        const lessonWeek = weekDaysFrom(lessonDate);
+        setScheduleFromDate(lessonWeek[0]);
+        setScheduleToDate(lessonWeek[6]);
+        setSchedulePickerMonth(lessonDate);
+        setSelectedScheduleDate(lessonDate);
+        setFocusedLessonId(targetId);
+        setScheduleMessage(`已定位到待处理课程：${focusTarget.label}`);
+      } else {
+        setScheduleMessage("当前权限范围内没有找到这条课程待办。");
+      }
+    }
+    if (focusTarget.targetType === "HOMEWORK_SUBMISSION" && targetId) {
+      setFocusedReviewId(targetId);
+      setFocusMessage(`已定位到待批改作业：${focusTarget.label}`);
+    }
+    if (focusTarget.targetType === "BILLING_CYCLE" && targetId) {
+      setSelectedBillingId(targetId);
+      setBillingMessage(`已定位到账单待办：${focusTarget.label}`);
+    }
+    if (focusTarget.targetType === "NOTIFICATION" && targetId) {
+      setFocusedReminderId(targetId);
+      setFocusMessage(`已定位到系统提醒：${focusTarget.label}`);
+    }
+    onFocusTargetHandled();
+  }, [data.lessons, focusTarget, module.key, onFocusTargetHandled]);
+
+  useEffect(() => {
+    if (!focusedLessonId && !focusedReviewId && !focusedReminderId && !focusMessage) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setFocusedLessonId(null);
+      setFocusedReviewId(null);
+      setFocusedReminderId(null);
+      setFocusMessage("");
+    }, 5200);
+    return () => window.clearTimeout(timer);
+  }, [focusMessage, focusedLessonId, focusedReminderId, focusedReviewId]);
 
   useEffect(() => {
     if ((module.key !== "billing" && module.key !== "monthly") || !selectedBillingId) {
@@ -2357,7 +2854,7 @@ function ModuleWorkspace({
             {dataError ? <EmptyState>{dataError}</EmptyState> : null}
             {!dataLoading && !dataError && scheduleRangeLessons.length === 0 ? <EmptyState>所选区间暂无课程，可以从右侧创建新课。</EmptyState> : null}
             {!dataLoading && !dataError ? scheduleRangeLessons.map((lesson) => (
-              <div className="scheduleRow" key={`${lesson.id}-${lesson.startsAt}`}>
+              <div className={String(lesson.id) === focusedLessonId ? "scheduleRow focused" : "scheduleRow"} key={`${lesson.id}-${lesson.startsAt}`}>
                 <time>{formatTime(lesson.startsAt)}<small>{formatTime(lesson.endsAt)}</small></time>
                 <div>
                   <strong>{lesson.classGroupName ?? classNameById.get(lesson.classGroupId ?? "") ?? "未绑定班级"}</strong>
@@ -2725,6 +3222,7 @@ function ModuleWorkspace({
   if (module.key === "classes") {
     const selectedClass = data.classes.find((item) => item.id === selectedClassId) ?? data.classes[0];
     const pendingStudent = classRoster?.availableStudents.find((student) => student.id === pendingCrossClassStudentId);
+    const canManageClassRoster = authSession.accessCodes.includes("student:manage");
 
     return (
       <section className="moduleView">
@@ -2785,14 +3283,16 @@ function ModuleWorkspace({
                 <span>负责老师</span>
                 <strong>{classRoster?.teachers.length ?? 0}</strong>
               </div>
-              <div>
-                <span>可添加</span>
-                <strong>{classRoster ? classRoster.availableStudents.length + classRoster.availableTeachers.length : 0}</strong>
-              </div>
+              {canManageClassRoster ? (
+                <div>
+                  <span>可添加</span>
+                  <strong>{classRoster ? classRoster.availableStudents.length + classRoster.availableTeachers.length : 0}</strong>
+                </div>
+              ) : null}
             </div>
             {rosterLoading ? <EmptyState>正在读取班级成员...</EmptyState> : null}
             {rosterMessage ? <div className={pendingStudent ? "rosterNotice warning" : "rosterNotice"}>{rosterMessage}</div> : null}
-            {pendingStudent ? (
+            {canManageClassRoster && pendingStudent ? (
               <div className="rosterConfirm">
                 <div>
                   <strong>确认跨班加入？</strong>
@@ -2820,7 +3320,9 @@ function ModuleWorkspace({
                       <small>薄弱点：{student.weaknessNote ?? "暂无记录"}</small>
                       <small>剩余：{student.remainingLessons ?? 0} 课时</small>
                       <em>{student.parentName ?? "未绑定家长"}</em>
-                      <button className="ghostButton danger" disabled={rosterSubmitting} onClick={() => void handleRemoveClassStudent(student.id)} type="button">移出班级</button>
+                      {canManageClassRoster ? (
+                        <button className="ghostButton danger" disabled={rosterSubmitting} onClick={() => void handleRemoveClassStudent(student.id)} type="button">移出班级</button>
+                      ) : null}
                     </div>
                   )) : null}
                 </div>
@@ -2838,13 +3340,16 @@ function ModuleWorkspace({
                         <strong>{teacher.displayName}</strong>
                         <span>{teacher.subject ?? (teacher.role === "TENANT_OWNER" ? "工作室负责人" : "授课老师")}</span>
                       </div>
-                      <button className="ghostButton danger" disabled={rosterSubmitting} onClick={() => void handleRemoveClassTeacher(teacher.userId)} type="button">移除</button>
+                      {canManageClassRoster ? (
+                        <button className="ghostButton danger" disabled={rosterSubmitting} onClick={() => void handleRemoveClassTeacher(teacher.userId)} type="button">移除</button>
+                      ) : null}
                     </div>
                   )) : null}
                 </div>
               </section>
             </div>
           </article>
+          {canManageClassRoster ? (
           <article className="panel rosterActionPanel">
             <div className="panelHeader">
               <div>
@@ -2899,12 +3404,15 @@ function ModuleWorkspace({
               </div>
             </div>
           </article>
+          ) : null}
         </div>
       </section>
     );
   }
 
   if (module.key === "homework") {
+    const canManageHomework = authSession.accessCodes.includes("homework:manage");
+    const canSubmitHomework = authSession.role === "student" || canManageHomework;
     return (
       <section className="moduleView">
         <article className="panel moduleHeader glowCard">
@@ -2918,6 +3426,94 @@ function ModuleWorkspace({
           </div>
           <ModuleToolbar labels={toolbarLabels} primary={moduleText.primary ?? ""} />
         </article>
+        {canManageHomework ? (
+          <article className="panel managementFormPanel homeworkComposer">
+            <div className="panelHeader">
+              <div>
+                <p className="overline">Publish</p>
+                <h3>发布作业</h3>
+              </div>
+              <UploadCloud size={20} />
+            </div>
+            <form className="managementForm" onSubmit={handleCreateHomework}>
+              <label>
+                <span>作业标题</span>
+                <input onChange={(event) => setHomeworkForm((current) => ({ ...current, title: event.target.value }))} placeholder="例如：函数图像分层练习" value={homeworkForm.title} />
+              </label>
+              <label>
+                <span>作业内容</span>
+                <textarea onChange={(event) => setHomeworkForm((current) => ({ ...current, content: event.target.value }))} placeholder="写清楚题目范围、提交方式和注意事项" value={homeworkForm.content} />
+              </label>
+              <div className="formPair">
+                <label>
+                  <span>发布给班级</span>
+                  <GlassSelect
+                    icon={Users}
+                    isOpen={openSelect === "homeworkClass"}
+                    onChange={(value) => {
+                      setHomeworkForm((current) => ({ ...current, classGroupId: value, studentId: value ? "" : current.studentId }));
+                      setOpenSelect(null);
+                    }}
+                    onToggle={() => openOnlySelect("homeworkClass")}
+                    options={homeworkClassOptions}
+                    placeholder="选择班级"
+                    value={homeworkForm.classGroupId}
+                  />
+                </label>
+                <label>
+                  <span>或发布给单个学生</span>
+                  <GlassSelect
+                    icon={GraduationCap}
+                    isOpen={openSelect === "homeworkStudent"}
+                    onChange={(value) => {
+                      if (homeworkForm.classGroupId) {
+                        return;
+                      }
+                      setHomeworkForm((current) => ({ ...current, studentId: value }));
+                      setOpenSelect(null);
+                    }}
+                    onToggle={() => {
+                      if (!homeworkForm.classGroupId) {
+                        openOnlySelect("homeworkStudent");
+                      }
+                    }}
+                    options={homeworkStudentOptions}
+                    placeholder="选择学生"
+                    value={homeworkForm.studentId}
+                  />
+                </label>
+              </div>
+              <div className="formPair">
+                <label>
+                  <span>关联课程</span>
+                  <GlassSelect
+                    icon={CalendarDays}
+                    isOpen={openSelect === "homeworkLesson"}
+                    onChange={(value) => {
+                      setHomeworkForm((current) => ({ ...current, lessonId: value }));
+                      setOpenSelect(null);
+                    }}
+                    onToggle={() => openOnlySelect("homeworkLesson")}
+                    options={homeworkLessonOptions}
+                    placeholder="关联课程"
+                    value={homeworkForm.lessonId}
+                  />
+                </label>
+                <label>
+                  <span>截止时间</span>
+                  <input onChange={(event) => setHomeworkForm((current) => ({ ...current, dueAt: event.target.value }))} type="datetime-local" value={homeworkForm.dueAt} />
+                </label>
+              </div>
+              <label className="inlineCheck">
+                <input checked={homeworkForm.publishNow} onChange={(event) => setHomeworkForm((current) => ({ ...current, publishNow: event.target.checked }))} type="checkbox" />
+                <span>立即发布给学生</span>
+              </label>
+              {homeworkMessage ? <div className="rosterNotice">{homeworkMessage}</div> : null}
+              <button className="blackButton" disabled={homeworkSubmitting} type="submit">{homeworkSubmitting ? "发布中..." : "发布作业"}</button>
+            </form>
+          </article>
+        ) : null}
+        {homeworkMessage && !canManageHomework ? <div className="rosterNotice">{homeworkMessage}</div> : null}
         <div className="pipelineGrid">
           {dataLoading ? <article className="panel pipelineColumn"><EmptyState>正在读取后端作业数据...</EmptyState></article> : null}
           {dataError ? <article className="panel pipelineColumn"><EmptyState>{dataError}</EmptyState></article> : null}
@@ -2926,7 +3522,17 @@ function ModuleWorkspace({
             const lesson = data.lessons.find((lessonItem) => lessonItem.id === item.lessonId);
             const target = item.studentName ? `${item.studentName} · ${item.classGroupName ?? "未绑定班级"}` : lesson ? classNameById.get(lesson.classGroupId ?? "") : "未绑定课程";
             return (
-            <article className="panel pipelineColumn" key={item.id}>
+            <article className="panel pipelineColumn homeworkCard" key={`${item.id}-${item.studentId ?? "all"}`}>
+              {canSubmitHomework ? (
+                <div className="homeworkSubmitBox">
+                  <textarea
+                    onChange={(event) => setSubmissionDrafts((current) => ({ ...current, [item.id]: event.target.value }))}
+                    placeholder={authSession.role === "student" ? "填写作业提交说明" : `代录 ${item.studentName ?? "学生"} 的提交说明`}
+                    value={submissionDrafts[item.id] ?? ""}
+                  />
+                  <button className="ghostButton" disabled={homeworkSubmitting} onClick={() => void handleSubmitHomework(item)} type="button">记录提交</button>
+                </div>
+              ) : null}
               <p className="overline">{homeworkStatusLabel(item.status)}</p>
               <h3>{item.title}</h3>
               <span>{target ?? "未绑定班级"}</span>
@@ -2959,11 +3565,107 @@ function ModuleWorkspace({
           <ModuleToolbar labels={toolbarLabels} primary={moduleText.primary ?? ""} />
         </article>
         <article className="panel reviewList">
+          {focusMessage ? <div className="focusNotice">{focusMessage}</div> : null}
           {dataLoading ? <EmptyState>正在读取批改数据...</EmptyState> : null}
           {dataError ? <EmptyState>{dataError}</EmptyState> : null}
           {!dataLoading && !dataError && data.reviews.length === 0 ? <EmptyState>暂无提交或批改记录</EmptyState> : null}
           {!dataLoading && !dataError ? data.reviews.map((item) => (
-            <div className="reviewRow" key={item.submissionId}>
+            <div className={String(item.submissionId) === focusedReviewId ? "reviewRow focused" : "reviewRow"} key={item.submissionId}>
+              <div className="reviewEditor">
+                <div className="formPair">
+                  <label>
+                    <span>分数</span>
+                    <input
+                      max="100"
+                      min="0"
+                      onChange={(event) => setReviewDrafts((current) => ({
+                        ...current,
+                        [item.submissionId]: {
+                          comment: current[item.submissionId]?.comment ?? item.comment ?? "",
+                          excellent: current[item.submissionId]?.excellent ?? Boolean(item.excellent),
+                          mistakeTags: current[item.submissionId]?.mistakeTags ?? item.mistakeTags ?? "",
+                          needsCorrection: current[item.submissionId]?.needsCorrection ?? Boolean(item.needsCorrection),
+                          score: event.target.value,
+                        },
+                      }))}
+                      placeholder="0-100"
+                      type="number"
+                      value={reviewDrafts[item.submissionId]?.score ?? (item.score === undefined ? "" : String(item.score))}
+                    />
+                  </label>
+                  <label>
+                    <span>错因标签</span>
+                    <input
+                      onChange={(event) => setReviewDrafts((current) => ({
+                        ...current,
+                        [item.submissionId]: {
+                          comment: current[item.submissionId]?.comment ?? item.comment ?? "",
+                          excellent: current[item.submissionId]?.excellent ?? Boolean(item.excellent),
+                          mistakeTags: event.target.value,
+                          needsCorrection: current[item.submissionId]?.needsCorrection ?? Boolean(item.needsCorrection),
+                          score: current[item.submissionId]?.score ?? (item.score === undefined ? "" : String(item.score)),
+                        },
+                      }))}
+                      placeholder="审题, 计算, 步骤"
+                      value={reviewDrafts[item.submissionId]?.mistakeTags ?? item.mistakeTags ?? ""}
+                    />
+                  </label>
+                </div>
+                <label>
+                  <span>批改评语</span>
+                  <textarea
+                    onChange={(event) => setReviewDrafts((current) => ({
+                      ...current,
+                      [item.submissionId]: {
+                        comment: event.target.value,
+                        excellent: current[item.submissionId]?.excellent ?? Boolean(item.excellent),
+                        mistakeTags: current[item.submissionId]?.mistakeTags ?? item.mistakeTags ?? "",
+                        needsCorrection: current[item.submissionId]?.needsCorrection ?? Boolean(item.needsCorrection),
+                        score: current[item.submissionId]?.score ?? (item.score === undefined ? "" : String(item.score)),
+                      },
+                    }))}
+                    placeholder="写给学生/家长能直接理解的反馈"
+                    value={reviewDrafts[item.submissionId]?.comment ?? item.comment ?? ""}
+                  />
+                </label>
+                <div className="reviewSwitches">
+                  <label>
+                    <input
+                      checked={reviewDrafts[item.submissionId]?.needsCorrection ?? Boolean(item.needsCorrection)}
+                      onChange={(event) => setReviewDrafts((current) => ({
+                        ...current,
+                        [item.submissionId]: {
+                          comment: current[item.submissionId]?.comment ?? item.comment ?? "",
+                          excellent: current[item.submissionId]?.excellent ?? Boolean(item.excellent),
+                          mistakeTags: current[item.submissionId]?.mistakeTags ?? item.mistakeTags ?? "",
+                          needsCorrection: event.target.checked,
+                          score: current[item.submissionId]?.score ?? (item.score === undefined ? "" : String(item.score)),
+                        },
+                      }))}
+                      type="checkbox"
+                    />
+                    <span>需要订正</span>
+                  </label>
+                  <label>
+                    <input
+                      checked={reviewDrafts[item.submissionId]?.excellent ?? Boolean(item.excellent)}
+                      onChange={(event) => setReviewDrafts((current) => ({
+                        ...current,
+                        [item.submissionId]: {
+                          comment: current[item.submissionId]?.comment ?? item.comment ?? "",
+                          excellent: event.target.checked,
+                          mistakeTags: current[item.submissionId]?.mistakeTags ?? item.mistakeTags ?? "",
+                          needsCorrection: current[item.submissionId]?.needsCorrection ?? Boolean(item.needsCorrection),
+                          score: current[item.submissionId]?.score ?? (item.score === undefined ? "" : String(item.score)),
+                        },
+                      }))}
+                      type="checkbox"
+                    />
+                    <span>优秀作业</span>
+                  </label>
+                  <button className="blackButton" disabled={homeworkSubmitting} onClick={() => void handleReviewSubmission(item)} type="button">保存批改</button>
+                </div>
+              </div>
               <div>
                 <strong>{item.studentName}</strong>
                 <span>{item.homeworkTitle}</span>
@@ -2981,20 +3683,257 @@ function ModuleWorkspace({
   }
 
   if (module.key === "forum") {
+    const forumPosts = [...localForumPosts, ...data.questions];
+    const forumTopics = Array.from(
+      forumPosts.reduce((topics, post) => {
+        [post.subject, post.knowledgePoint].forEach((value) => {
+          const topic = value?.split(",")[0]?.trim();
+          if (topic) {
+            topics.set(topic, (topics.get(topic) ?? 0) + 1);
+          }
+        });
+        return topics;
+      }, new Map<string, number>()),
+    ).sort((left, right) => right[1] - left[1]).slice(0, 8);
     return (
-      <section className="moduleView">
-        <article className="panel moduleHeader glowCard">
-          <div className="moduleTitle">
+      <section className="moduleView forumModuleView">
+        <article className="forumHero">
+          <div className="forumHeroIcon">
             <Icon size={26} />
+          </div>
+          <div>
+            <p className="overline">Community Forum</p>
+            <h2>{moduleText.title}</h2>
+            <span>像朋友圈一样分享题目、讲法、作业照片和教学问题；沉淀出来的好内容可以继续转成作业。</span>
+          </div>
+          <div className="forumHeroStats">
             <div>
-              <p className="overline">Question Bank</p>
-              <h2>{moduleText.title}</h2>
-              <span>{moduleText.description}</span>
+              <strong>{forumPosts.length}</strong>
+              <span>动态</span>
+            </div>
+            <div>
+              <strong>{forumPosts.reduce((sum, post) => sum + (post.commentCount ?? 0), 0)}</strong>
+              <span>评论</span>
+            </div>
+            <div>
+              <strong>{forumPosts.reduce((sum, post) => sum + (post.attachmentCount ?? 0), 0)}</strong>
+              <span>附件</span>
             </div>
           </div>
-          <ModuleToolbar labels={toolbarLabels} primary={moduleText.primary ?? ""} />
+          <button className="forumPublishButton" onClick={() => setForumComposerOpen(true)} type="button">
+            发布动态
+          </button>
         </article>
-        <div className="moduleGrid threeColumns">
+        {forumComposerOpen ? (
+          <div className="forumModalBackdrop" onClick={() => setForumComposerOpen(false)}>
+            <article className="panel forumComposer socialComposer forumComposerModal" onClick={(event) => event.stopPropagation()}>
+              <div className="forumModalHeader">
+                <div>
+                  <p className="overline">New Post</p>
+                  <h3>发布动态</h3>
+                </div>
+                <button className="iconButton" onClick={() => setForumComposerOpen(false)} type="button">
+                  <X size={18} />
+                </button>
+              </div>
+              <form className="forumComposerForm" onSubmit={handlePublishForumPost}>
+                <div className="forumComposerTop">
+                  <div className="forumAvatar">{authSession.avatar}</div>
+                  <div className="composerMain">
+                    <textarea
+                      onChange={(event) => setForumDraft((current) => ({ ...current, content: event.target.value }))}
+                      placeholder="分享一道题、一个讲法、一张作业照片，或者直接向大家提问..."
+                      value={forumDraft.content}
+                    />
+                    <input
+                      onChange={(event) => setForumDraft((current) => ({ ...current, title: event.target.value }))}
+                      placeholder="给这条动态加一个标题，可选"
+                      value={forumDraft.title}
+                    />
+                  </div>
+                </div>
+                {forumFiles.length > 0 ? (
+                  <div className="composerAttachmentGrid">
+                    {forumFiles.slice(0, 6).map((fileName) => (
+                      <div className="composerAttachment" key={fileName}>
+                        <FileText size={18} />
+                        <span>{fileName}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                <div className="forumMetaGrid">
+                  <input onChange={(event) => setForumDraft((current) => ({ ...current, subject: event.target.value }))} placeholder="科目，例如数学" value={forumDraft.subject} />
+                  <input onChange={(event) => setForumDraft((current) => ({ ...current, grade: event.target.value }))} placeholder="年级，例如初三" value={forumDraft.grade} />
+                  <input onChange={(event) => setForumDraft((current) => ({ ...current, scope: event.target.value }))} placeholder="公开范围：PUBLIC / PRIVATE" value={forumDraft.scope} />
+                </div>
+                <div className="forumComposerActions">
+                  <label className="fileAction">
+                    <UploadCloud size={17} />
+                    图片 / 文件
+                    <input
+                      accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+                      multiple
+                      onChange={(event) => {
+                        const files = Array.from(event.target.files ?? []);
+                        setForumFileObjects(files);
+                        setForumFiles(files.map((file) => file.name));
+                      }}
+                      type="file"
+                    />
+                  </label>
+                  <span>{forumFiles.length > 0 ? `${forumFiles.length} 个附件待发布` : "支持图片、PDF、Word、Excel 等附件"}</span>
+                  <button className="blackButton" type="submit">发布动态</button>
+                </div>
+              </form>
+            </article>
+          </div>
+        ) : null}
+        <div className="forumWorkbench socialForum">
+          <main className="forumMainColumn">
+          <article className="panel forumComposer socialComposer inlineForumComposer">
+            <form className="forumComposerForm" onSubmit={handlePublishForumPost}>
+              <div className="forumComposerTop">
+                <div className="forumAvatar">{authSession.avatar}</div>
+                <div className="composerMain">
+                  <textarea
+                    onChange={(event) => setForumDraft((current) => ({ ...current, content: event.target.value }))}
+                    placeholder="分享一道题、一个讲法、一张作业照片，或者直接向大家提问..."
+                    value={forumDraft.content}
+                  />
+                  <input
+                    onChange={(event) => setForumDraft((current) => ({ ...current, title: event.target.value }))}
+                    placeholder="给这条动态加一个标题，可选"
+                    value={forumDraft.title}
+                  />
+                </div>
+              </div>
+              {forumFiles.length > 0 ? (
+                <div className="composerAttachmentGrid">
+                  {forumFiles.slice(0, 6).map((fileName) => (
+                    <div className="composerAttachment" key={fileName}>
+                      <FileText size={18} />
+                      <span>{fileName}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+              <div className="forumMetaGrid">
+                <input onChange={(event) => setForumDraft((current) => ({ ...current, subject: event.target.value }))} placeholder="科目，例如数学" value={forumDraft.subject} />
+                <input onChange={(event) => setForumDraft((current) => ({ ...current, grade: event.target.value }))} placeholder="年级，例如初三" value={forumDraft.grade} />
+                <input onChange={(event) => setForumDraft((current) => ({ ...current, scope: event.target.value }))} placeholder="公开范围：PUBLIC / PRIVATE" value={forumDraft.scope} />
+              </div>
+              <div className="forumComposerActions">
+                <label className="fileAction">
+                  <UploadCloud size={17} />
+                  图片 / 文件
+                  <input
+                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+                    multiple
+                    onChange={(event) => {
+                      const files = Array.from(event.target.files ?? []);
+                      setForumFileObjects(files);
+                      setForumFiles(files.map((file) => file.name));
+                    }}
+                    type="file"
+                  />
+                </label>
+                <span>{forumFiles.length > 0 ? `${forumFiles.length} 个附件待发布` : "支持图片、PDF、Word、Excel 等附件"}</span>
+                <button className="blackButton" type="submit">发布动态</button>
+              </div>
+            </form>
+          </article>
+          <article className="forumFeed socialFeed">
+            {focusMessage ? <div className="focusNotice">{focusMessage}</div> : null}
+            {dataLoading ? <article className="panel questionPost"><EmptyState>正在读取题库论坛数据...</EmptyState></article> : null}
+            {dataError ? <article className="panel questionPost"><EmptyState>{dataError}</EmptyState></article> : null}
+            {!dataLoading && !dataError && forumPosts.length === 0 ? <article className="panel questionPost"><EmptyState>暂无讨论内容</EmptyState></article> : null}
+            {!dataLoading && !dataError ? forumPosts.map((question) => {
+              const questionId = String(question.id);
+              const liked = Boolean(question.likedByMe);
+              const favorited = Boolean(question.favoriteByMe);
+              const likeCount = question.likeCount ?? 0;
+              const favoriteCount = question.favoriteCount ?? 0;
+              return (
+                <article className="panel questionPost socialPost" key={question.id}>
+                  <div className="forumAvatar small">{(question.creatorName ?? "Z").slice(0, 1)}</div>
+                  <div className="questionPostBody">
+                    <div className="questionPostTop">
+                      <div>
+                        <strong>{question.creatorName ?? "匿名用户"}</strong>
+                        <span>{question.grade ?? "未设置年级"} · {question.subject ?? "未设置科目"} · {question.scope ?? "PUBLIC"}</span>
+                      </div>
+                      <ModuleStatus tone="violet">{question.difficulty ?? "DISCUSSION"}</ModuleStatus>
+                    </div>
+                    <h3>{question.title}</h3>
+                    <p>{question.content ?? question.knowledgePoint ?? "这条内容来自题库沉淀，可以继续评论、收藏或转为作业。"}</p>
+                    {(question.attachmentCount ?? 0) > 0 ? (
+                      <div className="postMediaGrid">
+                        {Array.from({ length: Math.min(question.attachmentCount ?? 0, 4) }).map((_, index) => (
+                          <div className="postMediaTile" key={`${question.id}-${index}`}>
+                            <FileText size={22} />
+                            <strong>{index === 0 ? "附件" : `附件 ${index + 1}`}</strong>
+                            <span>{question.knowledgePoint ?? "图片 / 文件"}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                    <div className="forumActions socialActions">
+                      <button className={liked ? "active" : ""} onClick={() => void handleQuestionReaction(questionId, "like")} type="button">点赞 {likeCount}</button>
+                      <button className={favorited ? "active" : ""} onClick={() => void handleQuestionReaction(questionId, "favorite")} type="button">收藏 {favoriteCount}</button>
+                      <button type="button">评论 {question.commentCount ?? 0}</button>
+                      <button type="button">转为作业</button>
+                    </div>
+                    <div className="commentComposer">
+                      <input
+                        onChange={(event) => setCommentDrafts((current) => ({ ...current, [questionId]: event.target.value }))}
+                        placeholder="写评论，补充思路、追问或讲法..."
+                        value={commentDrafts[questionId] ?? ""}
+                      />
+                      <button onClick={() => void handleQuestionComment(questionId)} type="button">发送</button>
+                    </div>
+                  </div>
+                </article>
+              );
+            }) : null}
+          </article>
+          </main>
+          <aside className="forumRightRail">
+            <section>
+              <p className="overline">Hot Topics</p>
+              <h3>热门话题</h3>
+              <div className="forumTopicChips">
+                {forumTopics.map(([topic, count]) => (
+                  <button key={topic} type="button">#{topic} {count}</button>
+                ))}
+                {forumTopics.length === 0 ? <span>暂无真实话题</span> : null}
+              </div>
+            </section>
+            <section>
+              <p className="overline">Active</p>
+              <h3>活跃讨论</h3>
+              <div className="forumMiniList">
+                {forumPosts.slice(0, 3).map((post) => (
+                  <div key={post.id}>
+                    <strong>{post.title}</strong>
+                    <span>{post.creatorName ?? "匿名用户"} · {post.commentCount ?? 0} 条评论</span>
+                  </div>
+                ))}
+                {forumPosts.length === 0 ? <span>暂无讨论，先发第一条动态。</span> : null}
+              </div>
+            </section>
+            <section>
+              <p className="overline">Guide</p>
+              <h3>发帖建议</h3>
+              <div className="forumGuideList">
+                <span>把题目、图片、讲法和疑问放在同一条动态里。</span>
+                <span>用科目、年级和公开范围帮助后续检索。</span>
+                <span>有价值的讨论可以转为作业继续跟进。</span>
+              </div>
+            </section>
+          </aside>
+        </div>
+        <div className="moduleGrid threeColumns legacyQuestionGrid">
           {dataLoading ? <article className="panel questionCard"><EmptyState>正在读取题库数据...</EmptyState></article> : null}
           {dataError ? <article className="panel questionCard"><EmptyState>{dataError}</EmptyState></article> : null}
           {!dataLoading && !dataError && data.questions.length === 0 ? <article className="panel questionCard"><EmptyState>暂无题库内容</EmptyState></article> : null}
@@ -3060,11 +3999,12 @@ function ModuleWorkspace({
           <ModuleToolbar labels={toolbarLabels} primary={moduleText.primary ?? ""} />
         </article>
         <article className="panel timelinePanel">
+          {focusMessage ? <div className="focusNotice">{focusMessage}</div> : null}
           {dataLoading ? <EmptyState>正在读取提醒数据...</EmptyState> : null}
           {dataError ? <EmptyState>{dataError}</EmptyState> : null}
           {!dataLoading && !dataError && data.reminders.length === 0 ? <EmptyState>暂无提醒</EmptyState> : null}
           {!dataLoading && !dataError ? data.reminders.map((item) => (
-            <div className="timelineItem" key={item.id}>
+            <div className={String(item.id) === focusedReminderId ? "timelineItem focused" : "timelineItem"} key={item.id}>
               <time>{formatTime(item.scheduledAt)}</time>
               <div>
                 <strong>{item.title}</strong>
@@ -3080,6 +4020,8 @@ function ModuleWorkspace({
   if (module.key === "billing" || module.key === "monthly") {
     const selectedBilling = data.billing.find((item) => item.cycleId === selectedBillingId) ?? data.billing[0];
     const activeDetail = billingDetail && billingDetail.cycleId === selectedBilling?.cycleId ? billingDetail : null;
+    const canExportBilling = authSession.accessCodes.includes("billing:export");
+    const canManageBilling = authSession.accessCodes.includes("billing:manage");
     return (
       <section className="moduleView">
         <article className="panel moduleHeader glowCard">
@@ -3131,7 +4073,9 @@ function ModuleWorkspace({
                     <h3>{selectedBilling.studentName}</h3>
                     <span>{selectedBilling.cycleMonth?.slice(0, 7)} · 家长 {activeDetail?.parentName || selectedBilling.parentName || "未填写"} · {activeDetail?.parentPhone || selectedBilling.parentPhone || "无电话"}</span>
                   </div>
-                  <button className="blackButton" disabled={billingSubmitting || !selectedBilling} onClick={() => void handleDownloadBillingStatement()} type="button">下载月结 PDF</button>
+                  {canExportBilling ? (
+                    <button className="blackButton" disabled={billingSubmitting || !selectedBilling} onClick={() => void handleDownloadBillingStatement()} type="button">下载月结 PDF</button>
+                  ) : null}
                 </div>
                 <div className="billingMetrics">
                   <div>
@@ -3186,45 +4130,49 @@ function ModuleWorkspace({
                               <strong>{payment.method || "WECHAT"} · ¥{Number(payment.amount ?? 0).toLocaleString("zh-CN")}</strong>
                               <span>{formatDateTime(payment.paidAt)} · {payment.note || "无备注"}</span>
                             </div>
-                            <button className="ghostButton danger" disabled={billingSubmitting} onClick={() => void handleUndoPayment(payment.id)} type="button">撤销</button>
+                            {canManageBilling ? (
+                              <button className="ghostButton danger" disabled={billingSubmitting} onClick={() => void handleUndoPayment(payment.id)} type="button">撤销</button>
+                            ) : null}
                           </div>
                         ))}
                       </div>
-                      <form className="paymentForm" onSubmit={handleRecordPayment}>
-                        <label>
-                          <span>收款金额</span>
-                          <input min="0" onChange={(event) => setPaymentForm((current) => ({ ...current, amount: event.target.value }))} placeholder="输入金额" step="0.01" type="number" value={paymentForm.amount} />
-                        </label>
-                        <label>
-                          <span>收款时间</span>
-                          <input onChange={(event) => setPaymentForm((current) => ({ ...current, paidAt: event.target.value }))} type="datetime-local" value={paymentForm.paidAt} />
-                        </label>
-                        <label>
-                          <span>方式</span>
-                          <GlassSelect
-                            icon={CircleDollarSign}
-                            isOpen={openSelect === "paymentMethod"}
-                            onChange={(value) => {
-                              setPaymentForm((current) => ({ ...current, method: value }));
-                              setOpenSelect(null);
-                            }}
-                            onToggle={() => setOpenSelect(openSelect === "paymentMethod" ? null : "paymentMethod")}
-                            options={[
-                              { description: "家长微信转账", label: "微信", value: "WECHAT" },
-                              { description: "支付宝付款", label: "支付宝", value: "ALIPAY" },
-                              { description: "银行转账", label: "银行卡", value: "BANK" },
-                              { description: "线下现金", label: "现金", value: "CASH" },
-                            ]}
-                            placeholder="选择方式"
-                            value={paymentForm.method}
-                          />
-                        </label>
-                        <label>
-                          <span>备注</span>
-                          <input onChange={(event) => setPaymentForm((current) => ({ ...current, note: event.target.value }))} placeholder="例如：6月部分付款" value={paymentForm.note} />
-                        </label>
-                        <button className="blackButton" disabled={billingSubmitting} type="submit">记录收款</button>
-                      </form>
+                      {canManageBilling ? (
+                        <form className="paymentForm" onSubmit={handleRecordPayment}>
+                          <label>
+                            <span>收款金额</span>
+                            <input min="0" onChange={(event) => setPaymentForm((current) => ({ ...current, amount: event.target.value }))} placeholder="输入金额" step="0.01" type="number" value={paymentForm.amount} />
+                          </label>
+                          <label>
+                            <span>收款时间</span>
+                            <input onChange={(event) => setPaymentForm((current) => ({ ...current, paidAt: event.target.value }))} type="datetime-local" value={paymentForm.paidAt} />
+                          </label>
+                          <label>
+                            <span>方式</span>
+                            <GlassSelect
+                              icon={CircleDollarSign}
+                              isOpen={openSelect === "paymentMethod"}
+                              onChange={(value) => {
+                                setPaymentForm((current) => ({ ...current, method: value }));
+                                setOpenSelect(null);
+                              }}
+                              onToggle={() => setOpenSelect(openSelect === "paymentMethod" ? null : "paymentMethod")}
+                              options={[
+                                { description: "家长微信转账", label: "微信", value: "WECHAT" },
+                                { description: "支付宝付款", label: "支付宝", value: "ALIPAY" },
+                                { description: "银行转账", label: "银行卡", value: "BANK" },
+                                { description: "线下现金", label: "现金", value: "CASH" },
+                              ]}
+                              placeholder="选择方式"
+                              value={paymentForm.method}
+                            />
+                          </label>
+                          <label>
+                            <span>备注</span>
+                            <input onChange={(event) => setPaymentForm((current) => ({ ...current, note: event.target.value }))} placeholder="例如：6月部分付款" value={paymentForm.note} />
+                          </label>
+                          <button className="blackButton" disabled={billingSubmitting} type="submit">记录收款</button>
+                        </form>
+                      ) : null}
                     </div>
                   </div>
                 ) : null}
@@ -3290,7 +4238,33 @@ function ModuleWorkspace({
           </div>
           <ModuleToolbar labels={toolbarLabels} primary={moduleText.primary ?? ""} />
         </article>
-        <article className="panel fieldsTable">
+        <article className="panel fieldDictionaryBoard">
+          <div className="fieldBoardHeader">
+            <div>
+              <p className="overline">Dictionary Center</p>
+              <h3>字段字典库</h3>
+              <span>把科目、年级、错因、课程方式、支付方式等高频字段做成可维护选项，业务表单只选择不手填。</span>
+            </div>
+            <ModuleStatus tone="violet">统一口径</ModuleStatus>
+          </div>
+          <div className="fieldDictionaryGrid">
+            {fieldDictionaries.map((dictionary) => (
+              <div className="fieldDictionaryCard" key={dictionary.title}>
+                <div>
+                  <strong>{dictionary.title}</strong>
+                  <ModuleStatus tone="green">{dictionary.owner}</ModuleStatus>
+                </div>
+                <p>{dictionary.description}</p>
+                <div className="fieldOptionChips">
+                  {dictionary.items.map((item) => (
+                    <span key={item}>{item}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </article>
+        <article className="panel fieldsTable legacyFieldsTable">
           {customFields.map(([scope, fields, visible]) => (
             <div key={scope}>
               <strong>{scope}</strong>
@@ -3890,7 +4864,7 @@ function PreferencesDrawer({
 }
 
 export function App() {
-  const [activeKey, setActiveKey] = useState("dashboard");
+  const [activeKey, setActiveKey] = useState<ModuleKey>("dashboard");
   const [authSession, setAuthSession] = useState<AuthUser | null>(loadAuthSession);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [openGroups, setOpenGroups] = useState<Record<ModuleItem["group"], boolean>>({
@@ -3901,6 +4875,8 @@ export function App() {
   });
   const [preferences, setPreferences] = useState<Preferences>(loadPreferences);
   const [ready, setReady] = useState(false);
+  const [activeTodoCategory, setActiveTodoCategory] = useState("all");
+  const [todoFocusTarget, setTodoFocusTarget] = useState<TodoFocusTarget | null>(null);
   const [workspaceData, setWorkspaceData] = useState<WorkspaceData>(emptyWorkspaceData);
   const [workspaceError, setWorkspaceError] = useState("");
 
@@ -3950,6 +4926,28 @@ export function App() {
   const dashboardLessons = workspaceData.lessons.filter((lesson) => toDateInputValue(new Date(lesson.startsAt)) === todayValue);
   const pendingReviews = workspaceData.reviews.filter((review) => !review.reviewedAt).length;
   const monthRevenue = workspaceData.billing.reduce((sum, item) => sum + Number(item.paidAmount ?? 0), 0);
+  const todoCategoryTabs = useMemo<TodoCategoryTab[]>(() => {
+    const counts = workspaceData.todos.reduce<Record<string, number>>((acc, item) => {
+      acc[item.category] = (acc[item.category] ?? 0) + 1;
+      return acc;
+    }, {});
+    const orderedKeys = [
+      ...todoCategoryOrder.filter((category) => counts[category]),
+      ...Object.keys(counts).filter((category) => !todoCategoryOrder.includes(category)),
+    ];
+    return [
+      { count: workspaceData.todos.length, key: "all", label: todoCategoryLabel("all") },
+      ...orderedKeys.map((category) => ({ count: counts[category], key: category, label: todoCategoryLabel(category) })),
+    ].filter((tab) => tab.count > 0 || tab.key === "all");
+  }, [workspaceData.todos]);
+  const visibleTodos = useMemo(
+    () => activeTodoCategory === "all"
+      ? workspaceData.todos
+      : workspaceData.todos.filter((item) => item.category === activeTodoCategory),
+    [activeTodoCategory, workspaceData.todos],
+  );
+  const urgentTodoCount = workspaceData.todos.filter((item) => item.priority === "high").length;
+  const activeTodoLabel = todoCategoryLabel(activeTodoCategory);
   const dashboardStats = [
     ["今日课程", String(dashboardLessons.length), "真实排课"],
     ["待办事项", String(workspaceData.todos.length), "系统内提醒"],
@@ -3962,6 +4960,12 @@ export function App() {
       setActiveKey(visibleModules[0].key);
     }
   }, [activeKey, authSession, visibleModules]);
+
+  useEffect(() => {
+    if (activeTodoCategory !== "all" && !workspaceData.todos.some((item) => item.category === activeTodoCategory)) {
+      setActiveTodoCategory("all");
+    }
+  }, [activeTodoCategory, workspaceData.todos]);
 
   const rootClass = [
     "zenoxApp",
@@ -3990,15 +4994,36 @@ export function App() {
     setOpenGroups((current) => ({ ...current, [group]: !current[group] }));
   };
 
+  const handleTodoOpen = (item: ServerTodo) => {
+    const moduleKey = moduleKeyForTodo(item);
+    const canOpenTarget = visibleModules.some((moduleItem) => moduleItem.key === moduleKey);
+    if (!canOpenTarget) {
+      setWorkspaceError("当前账号没有打开这条待办对应模块的权限。");
+      return;
+    }
+    setWorkspaceError("");
+    setTodoFocusTarget({
+      action: item.action,
+      category: item.category,
+      label: item.label,
+      moduleKey,
+      targetId: item.targetId === undefined ? undefined : String(item.targetId),
+      targetType: item.targetType,
+    });
+    setActiveKey(moduleKey);
+  };
+
   const handleLogin = (user: AuthUser) => {
     const firstVisibleModule = modules.find((item) => item.roles.includes(user.role) && user.accessCodes.includes(item.permissionCode));
     setAuthSession(user);
+    setTodoFocusTarget(null);
     setActiveKey(firstVisibleModule?.key ?? user.homePath);
   };
 
   const handleLogout = () => {
     window.localStorage.removeItem(AUTH_STORAGE_KEY);
     setAuthSession(null);
+    setTodoFocusTarget(null);
     setActiveKey("dashboard");
   };
 
@@ -4148,13 +5173,41 @@ export function App() {
                     <p className="overline">Action Center</p>
                     <h3>待办提醒</h3>
                   </div>
-                  <Bell size={20} />
+                  <div className={workspaceData.todos.length > 0 ? "todoBell hasPending" : "todoBell"}>
+                    <Bell size={20} />
+                    {workspaceData.todos.length > 0 ? <span>{workspaceData.todos.length}</span> : null}
+                  </div>
                 </div>
+                <div className="todoFilters" aria-label="待办类型筛选">
+                  {todoCategoryTabs.map((tab) => (
+                    <button
+                      className={activeTodoCategory === tab.key ? "todoFilter active" : "todoFilter"}
+                      key={tab.key}
+                      onClick={() => setActiveTodoCategory(tab.key)}
+                      type="button"
+                    >
+                      <span>{tab.label}</span>
+                      <strong>{tab.count}</strong>
+                    </button>
+                  ))}
+                </div>
+                {workspaceData.todos.length > 0 ? (
+                  <div className={urgentTodoCount > 0 ? "todoAlert urgent" : "todoAlert"}>
+                    <strong>{activeTodoLabel}待办 {visibleTodos.length} 项</strong>
+                    <span>{urgentTodoCount > 0 ? `${urgentTodoCount} 项高优先级，请优先处理。` : "当前没有高优先级待办。"}</span>
+                  </div>
+                ) : null}
                 <div className="todoList">
                   {workspaceData.todos.length === 0 ? <EmptyState>暂无待办事项</EmptyState> : null}
-                  {workspaceData.todos.map((item) => (
-                    <button className={`todoItem ${item.priority}`} key={item.label}>
-                      <span>{item.category}</span>
+                  {workspaceData.todos.length > 0 && visibleTodos.length === 0 ? <EmptyState>当前类型暂无待办事项</EmptyState> : null}
+                  {visibleTodos.map((item) => (
+                    <button
+                      className={`todoItem ${item.priority}`}
+                      key={`${item.category}-${item.targetType ?? ""}-${item.targetId ?? item.label}-${item.dueAt ?? ""}`}
+                      onClick={() => handleTodoOpen(item)}
+                      type="button"
+                    >
+                      <span>{todoCategoryLabel(item.category)}</span>
                       <div>
                         <strong>{item.label}</strong>
                         <small>{item.detail ?? "系统内提醒"}{item.dueAt ? ` · ${formatDateTime(item.dueAt)}` : ""}</small>
@@ -4192,9 +5245,11 @@ export function App() {
         ) : (
           <ModuleWorkspace
             authSession={authSession}
+            focusTarget={todoFocusTarget}
             key={`${activeModule.key}-${preferences.transition}-${preferences.language}`}
             language={preferences.language}
             module={activeModule}
+            onFocusTargetHandled={() => setTodoFocusTarget(null)}
             onWorkspaceDataChange={setWorkspaceData}
             workspaceData={workspaceData}
           />

@@ -1,5 +1,6 @@
 package com.zenox.billing.controller;
 
+import com.zenox.auth.security.RequirePermission;
 import com.zenox.billing.dto.BillingCycleDetail;
 import com.zenox.billing.dto.BillingCycleHeader;
 import com.zenox.billing.dto.RecordPaymentRequest;
@@ -29,16 +30,19 @@ public class BillingController {
   }
 
   @GetMapping
+  @RequirePermission("billing:view")
   public ApiResponse<List<BillingCycleHeader>> list() {
     return ApiResponse.ok(billingService.list());
   }
 
   @GetMapping("/{cycleId}")
+  @RequirePermission("billing:view")
   public ApiResponse<BillingCycleDetail> detail(@PathVariable Long cycleId) {
     return ApiResponse.ok(billingService.detail(cycleId));
   }
 
   @PostMapping("/{cycleId}/payments")
+  @RequirePermission("billing:manage")
   public ApiResponse<BillingCycleDetail> recordPayment(
       @PathVariable Long cycleId,
       @Valid @RequestBody RecordPaymentRequest request
@@ -47,11 +51,13 @@ public class BillingController {
   }
 
   @DeleteMapping("/payments/{paymentId}")
+  @RequirePermission("billing:manage")
   public ApiResponse<BillingCycleDetail> undoPayment(@PathVariable Long paymentId) {
     return ApiResponse.ok(billingService.undoPayment(paymentId));
   }
 
   @GetMapping("/{cycleId}/statement.pdf")
+  @RequirePermission("billing:export")
   public ResponseEntity<byte[]> statementPdf(@PathVariable Long cycleId) {
     byte[] content = billingService.statementPdf(cycleId);
     return ResponseEntity.ok()

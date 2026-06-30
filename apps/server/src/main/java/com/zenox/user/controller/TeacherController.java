@@ -1,5 +1,6 @@
 package com.zenox.user.controller;
 
+import com.zenox.auth.security.RequirePermission;
 import com.zenox.common.api.ApiResponse;
 import com.zenox.user.dto.CreateTeacherRequest;
 import com.zenox.user.dto.TeacherProfileSummary;
@@ -24,16 +25,19 @@ public class TeacherController {
   }
 
   @GetMapping
+  @RequirePermission("teacher:manage")
   public ApiResponse<List<TeacherProfileSummary>> list() {
     return ApiResponse.ok(teacherService.list());
   }
 
   @PostMapping
+  @RequirePermission("teacher:manage")
   public ApiResponse<TeacherProfileSummary> create(@Valid @RequestBody CreateTeacherRequest request) {
     return ApiResponse.ok(teacherService.create(request));
   }
 
   @DeleteMapping("/{teacherUserId}")
+  @RequirePermission("teacher:manage")
   public ApiResponse<Void> delete(@PathVariable Long teacherUserId) {
     teacherService.delete(teacherUserId);
     return ApiResponse.ok();

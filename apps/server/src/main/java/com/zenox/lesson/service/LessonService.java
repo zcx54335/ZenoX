@@ -5,6 +5,8 @@ import com.zenox.common.enums.LessonStatus;
 import com.zenox.common.error.BusinessException;
 import com.zenox.common.error.ErrorCode;
 import com.zenox.common.security.CurrentUser;
+import com.zenox.common.security.DataScope;
+import com.zenox.common.security.DataScopeService;
 import com.zenox.lesson.dto.CreateLessonRequest;
 import com.zenox.lesson.dto.LessonBillingMember;
 import com.zenox.lesson.dto.LessonScheduleItem;
@@ -29,15 +31,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class LessonService {
   private final CurrentUser currentUser;
+  private final DataScopeService dataScopeService;
   private final LessonMapper lessonMapper;
 
-  public LessonService(CurrentUser currentUser, LessonMapper lessonMapper) {
+  public LessonService(CurrentUser currentUser, DataScopeService dataScopeService, LessonMapper lessonMapper) {
     this.currentUser = currentUser;
+    this.dataScopeService = dataScopeService;
     this.lessonMapper = lessonMapper;
   }
 
   public List<LessonScheduleItem> list() {
-    return lessonMapper.listScheduleByTenantId(currentUser.tenantId());
+    return lessonMapper.listScheduleByScope(dataScopeService.current());
   }
 
   public byte[] exportMonthlyLessons(YearMonth month) {
@@ -50,7 +54,7 @@ public class LessonService {
     }
     var startsAt = startDate.atStartOfDay();
     var endsAt = endDate.plusDays(1).atStartOfDay();
-    List<LessonScheduleItem> lessons = lessonMapper.listScheduleByTenantIdAndRange(currentUser.tenantId(), startsAt, endsAt);
+    List<LessonScheduleItem> lessons = lessonMapper.listScheduleByScopeAndRange(dataScopeService.current(), startsAt, endsAt);
     try (var workbook = new XSSFWorkbook(); var output = new ByteArrayOutputStream()) {
       var sheet = workbook.createSheet("课程记录");
       CellStyle headerStyle = workbook.createCellStyle();
@@ -105,6 +109,7 @@ public class LessonService {
     }
     Long userId = currentUser.userId();
     Long tenantId = currentUser.tenantId();
+    ensureCanScheduleClass(request.classGroupId());
     ensureNoConflicts(tenantId, userId, request.classGroupId(), request.startsAt(), request.endsAt(), null);
 
     Lesson lesson = new Lesson();
@@ -133,6 +138,7 @@ public class LessonService {
     if (lesson == null) {
       throw new BusinessException(ErrorCode.NOT_FOUND, "Lesson not found");
     }
+    ensureCanManageLesson(lesson);
     if (lesson.getStatus() == LessonStatus.CANCELLED) {
       throw new BusinessException(ErrorCode.BAD_REQUEST, "Cancelled lessons cannot be rescheduled");
     }
@@ -151,6 +157,7 @@ public class LessonService {
     if (lesson == null) {
       throw new BusinessException(ErrorCode.NOT_FOUND, "Lesson not found");
     }
+    ensureCanManageLesson(lesson);
     lesson.setStatus(LessonStatus.CANCELLED);
     lessonMapper.updateById(lesson);
     return lesson;
@@ -163,6 +170,7 @@ public class LessonService {
     if (lesson == null) {
       throw new BusinessException(ErrorCode.NOT_FOUND, "Lesson not found");
     }
+    ensureCanManageLesson(lesson);
     if (lesson.getStatus() == LessonStatus.CANCELLED) {
       throw new BusinessException(ErrorCode.BAD_REQUEST, "Cancelled lessons cannot be completed");
     }
@@ -184,6 +192,7 @@ public class LessonService {
     if (lesson == null) {
       throw new BusinessException(ErrorCode.NOT_FOUND, "Lesson not found");
     }
+    ensureCanManageLesson(lesson);
     if (lesson.getStatus() != LessonStatus.COMPLETED) {
       throw new BusinessException(ErrorCode.BAD_REQUEST, "Only completed lessons can be undone");
     }
@@ -235,6 +244,26 @@ public class LessonService {
         : member.topic();
     String time = member.startsAt().format(DateTimeFormatter.ofPattern("MM/dd HH:mm"));
     return className + " · " + topic + " · " + hours.stripTrailingZeros().toPlainString() + " 课时 · " + time;
+  }
+
+  private void ensureCanManageLesson(Lesson lesson) {
+    DataScope scope = dataScopeService.current();
+    if (!scope.isAdmin() && !scope.getUserId().equals(lesson.getTeacherUserId())) {
+      throw new BusinessException(ErrorCode.FORBIDDEN, "只能管理自己负责的课程");
+    }
+  }
+
+  private void ensureCanScheduleClass(Long classGroupId) {
+    DataScope scope = dataScopeService.current();
+    if (classGroupId == null) {
+      if (!scope.isAdmin()) {
+        throw new BusinessException(ErrorCode.BAD_REQUEST, "请选择自己负责的班级后再排课");
+      }
+      return;
+    }
+    if (lessonMapper.countVisibleClassForScheduling(scope, classGroupId) == 0) {
+      throw new BusinessException(ErrorCode.FORBIDDEN, "只能为自己负责的班级排课");
+    }
   }
 
   private void ensureNoConflicts(
